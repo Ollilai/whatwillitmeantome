@@ -1,51 +1,47 @@
 /**
  * @description
- * This server page file creates a new route for the "WhatWillItMeantome" flow.
+ * This server component hosts the main user flow for "WhatWillItMeantome".
+ * It integrates the FormInputs client component and supplies a server action
+ * that calls handleMistralAction from "@/actions/ai/handle-mistral-actions".
  *
  * It is responsible for:
- * - Providing a dedicated page in the `(marketing)/whatwillitmeantome/` folder
- * - Laying the foundation for the user input form and AI report display in future steps
+ * - Providing a server function onSubmitAction that the client form can call
+ * - Rendering the form within a marketing layout
  *
  * Key features:
- * - Utilizes the existing marketing layout automatically (because it's placed under `(marketing)/`)
- * - Configured as a Next.js 13 server component (`"use server"`)
+ * - Minimal usage: calls handleMistralAction, returning the response
+ * - We do not yet display a fancy report or placard (that is in later steps)
  *
  * @dependencies
- * - Next.js 13 App Router for route structuring
- * - Layout from `app/(marketing)/layout.tsx` for consistent marketing layout
+ * - handleMistralAction from "@/actions/ai/handle-mistral-actions"
+ * - FormInputs from "./_components/form-inputs"
  *
  * @notes
- * - Currently serves as a placeholder. Step 6 will implement the form logic.
+ * - According to our project rule, we cannot directly import handleMistralAction in the client.
+ * - So we define a short server function onSubmitAction that references handleMistralAction.
+ * - This function is passed down to <FormInputs> as a prop.
  */
 
 "use server"
 
 import React from "react"
+import FormWrapper from "./_components/form-wrapper"
 
-/**
- * The primary server component for the WhatWillItMeantome route.
- *
- * @returns A JSX element containing a placeholder for the upcoming user input form and content.
- */
+// We define a server component, so we can do any server logic or data fetching here.
+// The user interacts with the client form. On submit, the client calls the server action.
 export default async function WhatWillItMeantomePage() {
-  // No async data loading or server actions are needed yet for this step.
-  // Future steps (Step 6) will introduce the form and integration with handleMistralAction.
-
+  // The server component returns the UI, which includes the client form.
   return (
-    <div className="p-8">
+    <div className="space-y-4 p-8">
       <h1 className="mb-4 text-2xl font-bold">What Will It Mean To Me?</h1>
 
       <p className="text-muted-foreground">
-        This page will house the user input form and integrate with Mistral AI
-        to generate a personalized report on how AGI may impact specific
-        careers.
+        Enter your career details below. We'll analyze how emerging AGI might
+        affect you and provide a structured report.
       </p>
 
-      <p className="mt-4">
-        This placeholder text confirms that the new route is set up. Future
-        steps will implement the form, the AI processing, and the resulting
-        report.
-      </p>
+      {/* Render our client wrapper component, which will use the form-inputs component */}
+      <FormWrapper />
     </div>
   )
 }
