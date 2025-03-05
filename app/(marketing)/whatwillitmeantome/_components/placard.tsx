@@ -2,26 +2,18 @@
  * @description
  * This client component generates a shareable "placard" that highlights
  * the user's profession and a short AI-generated summary. It uses
- * html2canvas to create an image from the rendered DOM.
+ * html2canvas to create an image from the rendered DOM. We have now
+ * incorporated a SocialSharing component for Step 8 (social share).
  *
- * It is responsible for:
- * - Rendering a stylized "Spotify Wrapped"-inspired layout with user data
- * - Providing a button to capture the DOM as an image and download it
- *
- * Key features:
- * - Visual design using Tailwind for a "wrapped" aesthetic
- * - "Generate Image" button triggers html2canvas
- * - On success, the user can download or preview the resulting image
- *
- * @dependencies
- * - React: For building the UI
- * - html2canvas: For converting DOM to an image
- * - Shadcn UI components: For styling
+ * @responsibilities
+ * - Renders a stylized "wrapped style" DOM node as an image
+ * - Provides a "Generate Image" button that calls html2canvas
+ * - Offers a "Download" button for the user
+ * - Now includes <SocialSharing> for major platforms
  *
  * @notes
- * - The data includes the user's profession, region, or summary. Here,
- *   we primarily highlight the summary and profession, but we can customize more.
- * - We store a local "imageURL" state to show the generated image if we want.
+ * - The entire file is re-provided with the new social sharing import & usage
+ * - We also pass the user's summary text and a site link to the SocialSharing
  */
 
 "use client"
@@ -30,6 +22,7 @@ import React, { useCallback, useRef, useState } from "react"
 import html2canvas from "html2canvas"
 import { Button } from "@/components/ui/button"
 import { MistralReportData } from "./report-display"
+import SocialSharing from "./social-sharing"
 
 interface PlacardProps {
   /**
@@ -44,8 +37,9 @@ interface PlacardProps {
 }
 
 /**
- * Placard component that captures a "wrapped style" DOM node as an image
- * and lets the user download the resulting PNG.
+ * Placard
+ * Renders the stylized placard with the user's profession & summary,
+ * plus share + download image functionality.
  */
 export default function Placard({ profession, data }: PlacardProps) {
   // This ref is where we store the portion of the DOM we want to screenshot
@@ -55,8 +49,9 @@ export default function Placard({ profession, data }: PlacardProps) {
   const [imageURL, setImageURL] = useState<string | null>(null)
 
   /**
-   * Function to generate an image using html2canvas.
-   * We then create a blob url so the user can download or see a preview.
+   * handleGenerateImage
+   * Uses html2canvas to capture the DOM segment and produce a data URL.
+   * Stores the resulting base64 image in state.
    */
   const handleGenerateImage = useCallback(async () => {
     if (!placardRef.current) return
@@ -67,7 +62,7 @@ export default function Placard({ profession, data }: PlacardProps) {
         scale: 2 // higher scale => higher resolution
       })
 
-      // Convert to a data URL
+      // Convert to data URL
       const dataUrl = canvas.toDataURL("image/png")
 
       setImageURL(dataUrl)
@@ -77,8 +72,9 @@ export default function Placard({ profession, data }: PlacardProps) {
   }, [])
 
   /**
-   * Provide a convenient "Download" button for the user.
-   * If imageURL is set, we can create an anchor link and programmatically click it.
+   * handleDownload
+   * If imageURL is set, we create an anchor link & programmatically click it
+   * so the user can download the PNG file.
    */
   const handleDownload = useCallback(() => {
     if (!imageURL) return
@@ -89,14 +85,21 @@ export default function Placard({ profession, data }: PlacardProps) {
     link.click()
   }, [imageURL])
 
+  /**
+   * We also want to provide a share link that leads back to the site or
+   * a user-specific link. For MVP, we can just use the site link or
+   * a placeholder. If we had a more robust system, we'd pass in a
+   * param-based route for the user's specific result.
+   */
+  const siteURL = "https://whatwillitmeantome.com/" // or a dynamic link
+
   return (
     <div className="my-8 w-full max-w-3xl space-y-4">
-      {/* The "placard" section: visually styled portion we will screenshot */}
+      {/* The "placard" section to screenshot */}
       <div
         ref={placardRef}
         className="relative flex h-72 w-full flex-col items-center justify-center overflow-hidden rounded-md bg-gradient-to-r from-purple-600 via-indigo-600 to-blue-600 p-8 text-white shadow-xl"
       >
-        {/* Some decorative shapes or gradient could be placed here */}
         <h2 className="text-xl font-bold uppercase tracking-wider">
           whatwillitmeantome.com
         </h2>
@@ -140,6 +143,9 @@ export default function Placard({ profession, data }: PlacardProps) {
           />
         </div>
       )}
+
+      {/* Social sharing row - using the summary as text, site link as url */}
+      <SocialSharing text={data.summary} url={siteURL} />
     </div>
   )
 }
