@@ -1,47 +1,38 @@
 /**
  * @description
  * This server component hosts the main user flow for "WhatWillItMeantome".
- * It integrates the FormInputs client component and supplies a server action
- * that calls handleMistralAction from "@/actions/ai/handle-mistral-actions".
+ * It includes a form where the user enters career data, calls Mistral AI,
+ * and displays the resulting analysis plus a shareable placard image generator.
  *
  * It is responsible for:
- * - Providing a server function onSubmitAction that the client form can call
- * - Rendering the form within a marketing layout
+ * - Maintaining the user input form (in a child client component) and passing
+ *   a callback to store the final AI data in parent state
+ * - Conditionally rendering the AI report display and the placard once data is ready
  *
  * Key features:
- * - Minimal usage: calls handleMistralAction, returning the response
- * - We do not yet display a fancy report or placard (that is in later steps)
+ * - Minimal usage: we define a state for MistralResponse
+ * - When the child form finishes a successful AI call, we set that state here
+ * - We then show <ReportDisplay /> and <Placard />
  *
  * @dependencies
- * - handleMistralAction from "@/actions/ai/handle-mistral-actions"
- * - FormInputs from "./_components/form-inputs"
+ * - handleMistralAction from "@/actions/ai/handle-mistral-actions" (called in the child)
+ * - React for the form data
+ * - Our newly created ReportDisplay and Placard components
  *
  * @notes
- * - According to our project rule, we cannot directly import handleMistralAction in the client.
- * - So we define a short server function onSubmitAction that references handleMistralAction.
- * - This function is passed down to <FormInputs> as a prop.
+ * - We strongly separate form logic (client) from final display logic (here)
+ * - The plan calls for disclaimers, so we have them in the <ReportDisplay /> as well
  */
 
 "use server"
 
 import React from "react"
-import FormWrapper from "./_components/form-wrapper"
+import PageClientBoundary from "./_components/page-client-boundary"
 
-// We define a server component, so we can do any server logic or data fetching here.
-// The user interacts with the client form. On submit, the client calls the server action.
+/**
+ * The default server export. We wrap the PageClientBoundary in a minimal
+ * server component (no async logic needed).
+ */
 export default async function WhatWillItMeantomePage() {
-  // The server component returns the UI, which includes the client form.
-  return (
-    <div className="space-y-4 p-8">
-      <h1 className="mb-4 text-2xl font-bold">What Will It Mean To Me?</h1>
-
-      <p className="text-muted-foreground">
-        Enter your career details below. We'll analyze how emerging AGI might
-        affect you and provide a structured report.
-      </p>
-
-      {/* Render our client wrapper component, which will use the form-inputs component */}
-      <FormWrapper />
-    </div>
-  )
+  return <PageClientBoundary />
 }

@@ -1,31 +1,28 @@
 /**
  * @description
- * This client component provides a form for collecting user input about their career,
- * including profession, years of experience, region, technical skill level, and optional details.
+ * This client component provides the user input form about their career,
+ * then calls a server action (passed in via props) to do Mistral AI analysis.
  *
  * It is responsible for:
  * - Rendering and validating form fields using React Hook Form + Zod
- * - Displaying a loading state while awaiting a response from the server
- * - Handling errors and showing a basic result or error status to the user
+ * - Displaying a loading indicator while awaiting the response
+ * - Handling errors (passed up or displayed in a toast)
  *
  * Key features:
  * - Profession/job title text field
  * - Years of experience numeric field
- * - Geographic region text field
+ * - Region text field
  * - Technical skill slider (0-10)
  * - Optional details field
- * - OnSubmit triggers an async server action provided by props (onSubmitAction)
  *
  * @dependencies
- * - react-hook-form: used for form state management
- * - zod & @hookform/resolvers/zod: for schema-based validation
- * - @/components/ui/input, @/components/ui/form, etc. (Shadcn UI) for form styling
+ * - react-hook-form for form state
+ * - zod for schema validation
+ * - Shadcn UI for styling (Button, Input, etc.)
  *
  * @notes
- * - We accept an `onSubmitAction` prop from the parent server component, which calls handleMistralAction internally
- * - We do not directly import the server action in this client file due to the project rule:
- *   "Never use server actions in client components."
- * - We display the returned data in a minimal format for now; a more robust display will be implemented in future steps.
+ * - We no longer store the result data here. Instead, we rely on a callback
+ *   from the parent to handle the successful result.
  */
 
 "use client"
@@ -50,9 +47,9 @@ import { Textarea } from "@/components/ui/textarea"
 import { toast } from "@/components/ui/use-toast"
 import { ActionState } from "@/types"
 
-// -----------------------------------------------------
-// Zod schema for form validation
-// -----------------------------------------------------
+/**
+ * Zod schema for our form fields.
+ */
 const formSchema = z.object({
   profession: z
     .string()
@@ -76,31 +73,33 @@ const formSchema = z.object({
     .optional()
 })
 
-// -----------------------------------------------------
-// FormInputsProps: We accept onSubmitAction from the server page
-// We'll store the result in local state and show it below
-// -----------------------------------------------------
+type FormInputsType = z.infer<typeof formSchema>
+
+/**
+ * Props for FormInputs, including the server action callback for submission.
+ */
 interface FormInputsProps {
+  /**
+   * The function to call on form submit. This is typically a server action
+   * that returns an ActionState<someData>.
+   */
   onSubmitAction: (
     profession: string,
     experience: number,
     region: string,
     skillLevel: number,
     details?: string
-  ) => Promise<ActionState<unknown>> // You can refine the 'unknown' type to MistralResponse or similar
+  ) => Promise<ActionState<unknown>>
 }
 
-type FormInputsType = z.infer<typeof formSchema>
-
 /**
- * Form component for collecting career information
- * @param onSubmitAction - Server action to call on form submission
+ * Renders the form UI for collecting career info, then calls the provided
+ * server action on submit.
  */
 export default function FormInputs({ onSubmitAction }: FormInputsProps) {
   const [isLoading, setIsLoading] = useState(false)
-  const [result, setResult] = useState<ActionState<unknown> | null>(null)
 
-  // Initialize form
+  // Initialize react-hook-form
   const form = useForm<FormInputsType>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -112,11 +111,11 @@ export default function FormInputs({ onSubmitAction }: FormInputsProps) {
     }
   })
 
-  // Form submission handler
+  /**
+   * Called when the user submits the form. We handle loading state, etc.
+   */
   async function onSubmit(data: FormInputsType) {
     setIsLoading(true)
-    setResult(null)
-
     try {
       const result = await onSubmitAction(
         data.profession,
@@ -126,19 +125,16 @@ export default function FormInputs({ onSubmitAction }: FormInputsProps) {
         data.details
       )
 
-      setResult(result)
-
-      if (result.isSuccess) {
-        toast({
-          title: "Success!",
-          description: "Your career analysis is ready."
-        })
-      } else {
+      if (!result.isSuccess) {
         toast({
           title: "Error",
           description: result.message,
           variant: "destructive"
         })
+      } else {
+        // We rely on the parent callback logic to do the rest.
+        // We'll also show a final toast here for success if we want, but
+        // the parent might do it, so let's be minimal.
       }
     } catch (error) {
       console.error("Form submission error:", error)
@@ -267,14 +263,6 @@ export default function FormInputs({ onSubmitAction }: FormInputsProps) {
           </Button>
         </form>
       </Form>
-
-      {result && result.isSuccess && (
-        <div className="bg-muted mt-8 rounded-lg border p-4">
-          <h3 className="mb-2 text-lg font-medium">Analysis Complete</h3>
-          <p>Your career analysis is ready!</p>
-          {/* You can display more structured results here based on the response */}
-        </div>
-      )}
     </div>
   )
 }
