@@ -4,7 +4,7 @@ This server layout provides a shared header and basic structure for (marketing) 
 
 "use server"
 
-import { Footer } from "@/components/landing/footer"
+import Footer from "@/components/landing/footer"
 import Header from "@/components/landing/header"
 
 export default async function MarketingLayout({

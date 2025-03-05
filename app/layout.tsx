@@ -40,6 +40,10 @@ export default async function RootLayout({
   return (
     <ClerkProvider>
       <html lang="en" suppressHydrationWarning>
+        <head>
+          <meta charSet="utf-8" />
+          <meta name="viewport" content="width=device-width, initial-scale=1" />
+        </head>
         <body
           className={cn(
             "bg-background mx-auto min-h-screen w-full scroll-smooth antialiased",

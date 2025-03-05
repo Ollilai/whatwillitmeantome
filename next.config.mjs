@@ -1,8 +1,17 @@
 /*
-Configures Next.js for the app.
+Configuration for Next.js for the app.
 */
 
 /** @type {import('next').NextConfig} */
-const nextConfig = { images: { remotePatterns: [{ hostname: "localhost" }] } }
+const nextConfig = {
+  images: {
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "**"
+      }
+    ]
+  }
+}
 
 export default nextConfig
