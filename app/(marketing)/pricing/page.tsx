@@ -1,5 +1,5 @@
 /*
-This server page displays pricing options for the product, integrating Stripe payment links.
+This server page displays pricing options for the product.
 */
 
 "use server"
@@ -45,9 +45,7 @@ export default async function PricingPage() {
           price="$10"
           description="Perfect for individuals and small teams"
           buttonText="Subscribe Monthly"
-          buttonLink={
-            process.env.NEXT_PUBLIC_STRIPE_PAYMENT_LINK_MONTHLY || "#"
-          }
+          buttonLink="#"
           features={features}
           userId={userId}
           popular={false}
@@ -57,7 +55,7 @@ export default async function PricingPage() {
           price="$100"
           description="Save 17% with annual billing"
           buttonText="Subscribe Yearly"
-          buttonLink={process.env.NEXT_PUBLIC_STRIPE_PAYMENT_LINK_YEARLY || "#"}
+          buttonLink="#"
           features={features}
           userId={userId}
           popular={true}
