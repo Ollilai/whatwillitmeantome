@@ -1,6 +1,26 @@
-/*
-This client component provides the header for the app.
-*/
+/**
+ * @description
+ * This client component provides the header for the app.
+ *
+ * Key responsibilities:
+ * - Displays site navigation links (Home, About, Features, etc.)
+ * - Shows sign-in, sign-up, or user-button states based on auth
+ * - Implements a mobile menu with framer-motion
+ *
+ * Key changes for Step 2:
+ * - Removed the "/pricing" reference from the `navLinks` array,
+ *   ensuring no user navigates to pricing from the header.
+ *
+ * @dependencies
+ * - @clerk/nextjs for auth states
+ * - framer-motion for mobile menu animation
+ * - lucide-react for icons
+ * - next/link for navigation
+ *
+ * @notes
+ * - The rest of the code remains the same as before, except we've deleted
+ *   the `{ href: "/pricing", label: "Pricing" }` object from `navLinks`.
+ */
 
 "use client"
 
@@ -20,7 +40,7 @@ import { useEffect, useState } from "react"
 const navLinks = [
   { href: "/about", label: "About" },
   { href: "/features", label: "Features" },
-  { href: "/pricing", label: "Pricing" },
+  // Removed the Pricing link
   { href: "/contact", label: "Contact" }
 ]
 
@@ -162,6 +182,7 @@ export default function Header() {
                 Home
               </Link>
             </li>
+
             {navLinks.map(link => (
               <li key={link.href}>
                 <Link
@@ -173,6 +194,7 @@ export default function Header() {
                 </Link>
               </li>
             ))}
+
             <SignedIn>
               {signedInLinks.map(link => (
                 <li key={link.href}>

@@ -1,6 +1,23 @@
-/*
-This client component provides the footer for the app.
-*/
+/**
+ * @description
+ * This client component provides the footer for the app.
+ *
+ * It is responsible for:
+ * - Displaying site links and relevant references, such as About, Features, etc.
+ *
+ * Key changes for Step 2:
+ * - Removed the "Pricing" link to ensure no references to /pricing remain.
+ *
+ * @dependencies
+ * - React and Next.js for component structure
+ * - Lucide-react for icons
+ * - Link from next/link for navigation
+ *
+ * @notes
+ * - This complete file content replaces the old version. The only change is that
+ *   we've removed the link to `/pricing` in the "Product" section. Everything else
+ *   is identical to the original code.
+ */
 
 "use client"
 
@@ -14,6 +31,7 @@ export default function Footer() {
         <div className="grid grid-cols-1 gap-8 md:grid-cols-4">
           <div className="space-y-4">
             <h3 className="text-lg font-bold">Company</h3>
+
             <div className="flex flex-col gap-2">
               <Link
                 href="/about"
@@ -21,12 +39,14 @@ export default function Footer() {
               >
                 About
               </Link>
+
               <Link
                 href="/blog"
                 className="text-muted-foreground hover:text-foreground transition"
               >
                 Blog
               </Link>
+
               <Link
                 href="/careers"
                 className="text-muted-foreground hover:text-foreground transition"
@@ -38,6 +58,7 @@ export default function Footer() {
 
           <div className="space-y-4">
             <h3 className="text-lg font-bold">Product</h3>
+
             <div className="flex flex-col gap-2">
               <Link
                 href="/features"
@@ -45,12 +66,11 @@ export default function Footer() {
               >
                 Features
               </Link>
-              <Link
-                href="/pricing"
-                className="text-muted-foreground hover:text-foreground transition"
-              >
-                Pricing
-              </Link>
+
+              {/* 
+                Removed the Pricing link previously here 
+              */}
+
               <Link
                 href="/docs"
                 className="text-muted-foreground hover:text-foreground transition"
@@ -62,6 +82,7 @@ export default function Footer() {
 
           <div className="space-y-4">
             <h3 className="text-lg font-bold">Resources</h3>
+
             <div className="flex flex-col gap-2">
               <Link
                 href="/support"
@@ -69,12 +90,14 @@ export default function Footer() {
               >
                 Support
               </Link>
+
               <Link
                 href="/terms"
                 className="text-muted-foreground hover:text-foreground transition"
               >
                 Terms
               </Link>
+
               <Link
                 href="/privacy"
                 className="text-muted-foreground hover:text-foreground transition"
@@ -86,6 +109,7 @@ export default function Footer() {
 
           <div className="space-y-4">
             <h3 className="text-lg font-bold">Social</h3>
+
             <div className="flex gap-4">
               <Link
                 href="https://github.com"
@@ -94,6 +118,7 @@ export default function Footer() {
               >
                 <Github className="text-muted-foreground hover:text-foreground size-6 transition" />
               </Link>
+
               <Link
                 href="https://twitter.com"
                 target="_blank"
