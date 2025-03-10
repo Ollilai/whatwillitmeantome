@@ -1,31 +1,23 @@
+"use client"
+
 /**
  * @description
- * This client component provides the user input form about their career,
- * then calls a server action (passed in via props) to do Mistral AI analysis.
+ * A client component that renders the user input form (profession, experience, etc.)
+ * and uses zod + react-hook-form for validation.
  *
- * It is responsible for:
- * - Rendering and validating form fields using React Hook Form + Zod
- * - Displaying a loading indicator while awaiting the response
- * - Handling errors (passed up or displayed in a toast)
+ * @responsibilities
+ * - Validate form fields (profession, experience, region, skillLevel, details)
+ * - Call a prop function onSubmitAction when the user submits
  *
  * Key features:
- * - Profession/job title text field
- * - Years of experience numeric field
- * - Region text field
- * - Technical skill slider (0-10)
- * - Optional details field
- *
- * @dependencies
- * - react-hook-form for form state
- * - zod for schema validation
- * - Shadcn UI for styling (Button, Input, etc.)
+ * - Uses zod for type-safe validation
+ * - Provides instant feedback if fields are missing or invalid
+ * - Exposes a loading state while the server action is being called
  *
  * @notes
- * - We no longer store the result data here. Instead, we rely on a callback
- *   from the parent to handle the successful result.
+ * - The onSubmitAction is provided as a prop, which is typically a server action
+ *   that returns an ActionState<unknown>.
  */
-
-"use client"
 
 import { useState } from "react"
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -35,10 +27,10 @@ import { Button } from "@/components/ui/button"
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
+  FormDescription,
   FormMessage
 } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
@@ -47,9 +39,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { toast } from "@/components/ui/use-toast"
 import { ActionState } from "@/types"
 
-/**
- * Zod schema for our form fields.
- */
+// Define Zod schema for our form fields
 const formSchema = z.object({
   profession: z
     .string()
@@ -76,12 +66,11 @@ const formSchema = z.object({
 type FormInputsType = z.infer<typeof formSchema>
 
 /**
- * Props for FormInputs, including the server action callback for submission.
+ * Contract for the server action callback used by this form.
  */
 interface FormInputsProps {
   /**
-   * The function to call on form submit. This is typically a server action
-   * that returns an ActionState<someData>.
+   * Server action for submitting the form. Must return an ActionState.
    */
   onSubmitAction: (
     profession: string,
@@ -93,8 +82,8 @@ interface FormInputsProps {
 }
 
 /**
- * Renders the form UI for collecting career info, then calls the provided
- * server action on submit.
+ * Renders the "WhatWillItMeantome" input form,
+ * capturing user details about their career, skill, region, etc.
  */
 export default function FormInputs({ onSubmitAction }: FormInputsProps) {
   const [isLoading, setIsLoading] = useState(false)
@@ -112,7 +101,8 @@ export default function FormInputs({ onSubmitAction }: FormInputsProps) {
   })
 
   /**
-   * Called when the user submits the form. We handle loading state, etc.
+   * Handles form submission by calling the onSubmitAction server function
+   * and showing a toast based on success/failure.
    */
   async function onSubmit(data: FormInputsType) {
     setIsLoading(true)
@@ -131,11 +121,9 @@ export default function FormInputs({ onSubmitAction }: FormInputsProps) {
           description: result.message,
           variant: "destructive"
         })
-      } else {
-        // We rely on the parent callback logic to do the rest.
-        // We'll also show a final toast here for success if we want, but
-        // the parent might do it, so let's be minimal.
       }
+      // If isSuccess, we rely on parent callback or logic in FormWrapper
+      // to handle the successful data. So we do not toast success here.
     } catch (error) {
       console.error("Form submission error:", error)
       toast({
@@ -152,6 +140,7 @@ export default function FormInputs({ onSubmitAction }: FormInputsProps) {
     <div className="mx-auto w-full max-w-2xl">
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+          {/* Profession field */}
           <FormField
             control={form.control}
             name="profession"
@@ -169,6 +158,7 @@ export default function FormInputs({ onSubmitAction }: FormInputsProps) {
             )}
           />
 
+          {/* Experience field */}
           <FormField
             control={form.control}
             name="experience"
@@ -193,6 +183,7 @@ export default function FormInputs({ onSubmitAction }: FormInputsProps) {
             )}
           />
 
+          {/* Region field */}
           <FormField
             control={form.control}
             name="region"
@@ -210,6 +201,7 @@ export default function FormInputs({ onSubmitAction }: FormInputsProps) {
             )}
           />
 
+          {/* Skill level slider field */}
           <FormField
             control={form.control}
             name="skillLevel"
@@ -238,6 +230,7 @@ export default function FormInputs({ onSubmitAction }: FormInputsProps) {
             )}
           />
 
+          {/* Additional details field */}
           <FormField
             control={form.control}
             name="details"

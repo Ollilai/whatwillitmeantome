@@ -1,51 +1,44 @@
-/**
- * @description
- * This client component serves as a wrapper that handles the AI submission flow:
- * - It renders FormInputs (the user input form)
- * - On success, it calls a prop function `onAiSuccess(data)` to let the parent
- *   page store the AI data in parent state
- *
- * Key features:
- * - Accepts a callback to pass the Mistral AI result up
- * - Maintains the existing form input logic
- *
- * @dependencies
- * - form-inputs.tsx: actual form UI
- *
- * @notes
- * - The major change here is that we remove the old local `result` state
- *   and instead pass successful results up to the parent
- */
-
 "use client"
 
+/**
+ * @description
+ * This client component wraps the form and handles the server action calls.
+ * It uses `onSubmitAction` from the newly moved `actions-whatwillitmeantome.ts`.
+ *
+ * @responsibilities
+ * - Provide a callback for the FormInputs that calls the server action
+ * - Notify the parent when AI analysis is ready, via onAiSuccess
+ *
+ * @notes
+ * - We do not store local result state here; instead, we pass the result up
+ *   through onAiSuccess.
+ */
+
 import React, { useTransition } from "react"
-import { onSubmitAction } from "../actions"
+import { onSubmitAction } from "../../actions-whatwillitmeantome" // Adjusted import
 import FormInputs from "./form-inputs"
 import { ActionState } from "@/types"
 import { useToast } from "@/components/ui/use-toast"
-import { MistralReportData } from "./report-display"
+import { MistralReportData } from "./report-display-types"
 
-/**
- * Props for FormWrapper, which includes the callback to be called on success.
- */
 interface FormWrapperProps {
   /**
-   * Callback invoked when the AI call has succeeded, with the structured data.
+   * Called when the Mistral AI call succeeds, passing the structured analysis data.
    */
   onAiSuccess: (data: MistralReportData) => void
 }
 
 /**
- * FormWrapper calls the server action and on success notifies the parent.
+ * Wraps the user input form and calls the server action.
  */
 export default function FormWrapper({ onAiSuccess }: FormWrapperProps) {
   const [isPending, startTransition] = useTransition()
   const { toast } = useToast()
 
   /**
-   * Handler invoked by the child form on submit.
-   * We wrap the server action and handle success or error.
+   * This function is provided to our child <FormInputs>.
+   * When the user submits, we call the server action onSubmitAction,
+   * then pass the result up to onAiSuccess if successful.
    */
   const handleSubmit = async (
     profession: string,
@@ -74,8 +67,7 @@ export default function FormWrapper({ onAiSuccess }: FormWrapperProps) {
           return
         }
 
-        // If we succeed, we have data -> pass to parent.
-        // The shape should match MistralReportData.
+        // If we succeed, pass data to parent
         const data = result.data as MistralReportData
         onAiSuccess(data)
 
