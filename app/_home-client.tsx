@@ -7,23 +7,23 @@
  *  - Render the form for capturing profession, experience, region, etc.
  *  - On submit, call onSubmitAction to query Mistral with user data
  *  - Store & display AI results (Outlook, Benefits/Risks, Steps, Placard)
- *  - Present a single disclaimers block in the main page (app/page.tsx)
+ *  - Present a single disclaimer block in the main page (app/page.tsx)
+ *  - Provide social sharing functionality via <SocialSharing> once the result is ready
  *
- * Key features:
+ * Key Features:
  *  - Validates input with zod + React Hook Form
- *  - Uses a distinct <Placard> component for the short summary text
- *  - Ensures the results are center-aligned and disclaimers are not duplicated
+ *  - Uses <Placard> to show a short summary text
+ *  - Integrates <SocialSharing> to share the final placard on social media
  *
  * @dependencies
- * - React Hook Form for form management
- * - Zod for input validation
- * - The handleMistralAction (via onSubmitAction) for calling Mistral
- * - The new <Placard> component for the one-sentence summary
+ * - React Hook Form, zod for form handling and validation
+ * - onSubmitAction from "app/(marketing)/actions-whatwillitmeantome" for Mistral
+ * - Placard for the AI summary
+ * - SocialSharing for share buttons
  *
  * @notes
- *  - Step 5 specifically addresses making the "Placard" visually appealing.
- *    This file now imports <Placard> to show the summary in a Shadcn card.
- *  - We'll add social sharing enhancements (Step 6) in a later step.
+ * - We pass "result.placard" as the snippet to the SocialSharing component
+ * - The user can share to Twitter, LinkedIn, Facebook, or Reddit
  */
 
 "use client"
@@ -48,11 +48,11 @@ import { Slider } from "@/components/ui/slider"
 import { Textarea } from "@/components/ui/textarea"
 import { onSubmitAction } from "@/app/(marketing)/actions-whatwillitmeantome"
 import type { ActionState } from "@/types"
-import Placard from "@/app/_components/placard" // Our newly created component
+import Placard from "@/app/_components/placard"
+import SocialSharing from "@/app/(marketing)/_components/social-sharing"
 
 /**
- * @description
- * The shape of form inputs, validated with zod:
+ * Form schema using zod
  */
 const formSchema = z.object({
   profession: z
@@ -80,13 +80,8 @@ const formSchema = z.object({
 type FormInputsType = z.infer<typeof formSchema>
 
 /**
- * @description
- * The shape of data returned by Mistral:
- *  - profession
- *  - outlook
- *  - benefitsAndRisks
- *  - steps
- *  - placard
+ * @interface MistralResponse
+ * The shape of data returned by handleMistralAction
  */
 interface MistralResponse {
   profession: string
@@ -98,23 +93,17 @@ interface MistralResponse {
 
 /**
  * @function HomeClient
- * Client component for the homepage: handles the entire user journey of
- * entering data -> getting a Mistral-based analysis -> displaying results.
- *
- * @returns React element
- *
- * @notes
- *  - We store the AI result in local state (result).
- *  - If there's a valid result, we display the placard + other sections.
- *  - We ensure disclaimers are only once (in app/page.tsx).
- *  - Step 5 ensures the placard is visually appealing and production-ready.
+ * Client-side logic for the main page:
+ *  - Renders the user input form
+ *  - Submits to onSubmitAction for AI analysis
+ *  - Displays result if available, including <Placard> and <SocialSharing>
  */
 export default function HomeClient() {
   const [result, setResult] = useState<MistralResponse | null>(null)
   const [isAnalyzing, setIsAnalyzing] = useState(false)
   const [isPending, startTransition] = useTransition()
 
-  // Setup form
+  // Setup React Hook Form
   const form = useForm<FormInputsType>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -128,10 +117,7 @@ export default function HomeClient() {
 
   /**
    * @function onSubmit
-   * Submit the user input for AI analysis via onSubmitAction, then
-   * store the Mistral response in local state if successful.
-   *
-   * @param {FormInputsType} data - user-provided form inputs
+   * Calls onSubmitAction with user input to get AI-based analysis
    */
   async function onSubmit(data: FormInputsType) {
     setIsAnalyzing(true)
@@ -154,9 +140,10 @@ export default function HomeClient() {
           return
         }
 
-        // If success, store Mistral result
+        // If success, store the AI result in local state
         const typedData = response.data as MistralResponse
         setResult(typedData)
+
         toast({
           title: "Success",
           description: "Your career analysis is ready!"
@@ -177,7 +164,9 @@ export default function HomeClient() {
 
   return (
     <div className="w-full max-w-3xl space-y-8">
-      {/* FORM SECTION */}
+      {/**
+       * FORM SECTION
+       */}
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
           {/* Profession */}
@@ -306,46 +295,59 @@ export default function HomeClient() {
         </form>
       </Form>
 
-      {/* RESULTS SECTION */}
+      {/**
+       * RESULTS SECTION
+       */}
       {result && (
-        <div className="space-y-4 text-center">
+        <div className="space-y-6 text-center">
           <h2 className="text-xl font-semibold">
             Analysis Results for {result.profession}
           </h2>
 
           {/**
-           * Step 5 improvement:
-           * We replace the old raw block with our new <Placard> for the one-sentence summary.
+           * Display the analysis in a grid
            */}
-          <Placard summary={result.placard} />
-
-          {/* Outlook & Benefits/Risks & Steps in a grid */}
-          <div className="grid gap-4 md:grid-cols-2">
+          <div className="grid gap-6 md:grid-cols-2">
             {/* Outlook */}
-            <div className="mx-auto w-full max-w-md rounded-md border p-4 text-left">
-              <h3 className="mb-2 text-base font-semibold">General Outlook</h3>
-              <p className="text-foreground whitespace-pre-line text-sm">
-                {result.outlook}
-              </p>
+            <div className="bg-card mx-auto w-full rounded-lg border p-5 text-left shadow-sm">
+              <h3 className="text-primary mb-3 text-lg font-semibold">
+                General Outlook
+              </h3>
+              <div
+                className="text-foreground text-sm leading-relaxed"
+                dangerouslySetInnerHTML={{ __html: result.outlook }}
+              />
             </div>
 
-            {/* Benefits & Risks */}
-            <div className="mx-auto w-full max-w-md rounded-md border p-4 text-left">
-              <h3 className="mb-2 text-base font-semibold">
+            {/* Steps to Adapt */}
+            <div className="bg-card mx-auto w-full rounded-lg border p-5 text-left shadow-sm">
+              <h3 className="text-primary mb-3 text-lg font-semibold">
+                Steps to Adapt
+              </h3>
+              <div
+                className="text-foreground text-sm leading-relaxed"
+                dangerouslySetInnerHTML={{ __html: result.steps }}
+              />
+            </div>
+
+            {/* Benefits & Risks - Now spans full width */}
+            <div className="bg-card mx-auto w-full rounded-lg border p-5 text-left shadow-sm md:col-span-2">
+              <h3 className="text-primary mb-3 text-lg font-semibold">
                 Potential Benefits &amp; Risks
               </h3>
-              <p className="text-foreground whitespace-pre-line text-sm">
-                {result.benefitsAndRisks}
-              </p>
+              <div
+                className="text-foreground text-sm leading-relaxed"
+                dangerouslySetInnerHTML={{ __html: result.benefitsAndRisks }}
+              />
             </div>
+          </div>
 
-            {/* Steps to Adapt (span two columns on wide screens) */}
-            <div className="mx-auto w-full max-w-3xl rounded-md border p-4 text-left md:col-span-2">
-              <h3 className="mb-2 text-base font-semibold">Steps to Adapt</h3>
-              <p className="text-foreground whitespace-pre-line text-sm">
-                {result.steps}
-              </p>
-            </div>
+          {/**
+           * Show the AI's short summary in a placard - Now moved below the analysis
+           */}
+          <div className="mx-auto mt-8 max-w-2xl">
+            <h3 className="mb-4 text-lg font-medium">Key Takeaway</h3>
+            <Placard summary={result.placard} />
           </div>
         </div>
       )}

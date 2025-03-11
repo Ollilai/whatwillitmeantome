@@ -1,17 +1,28 @@
-"use client"
-
 /**
  * @description
  * Renders social sharing buttons for Twitter, LinkedIn, Facebook, and Reddit.
- * Logs share usage events in the background using onShareAction.
+ * On click, logs share usage events in the background via onShareAction.
  *
- * @responsibilities
+ * Responsibilities:
  * - Provide clickable icons that open share links in new windows
- * - Call the server action to log usage
+ * - Call the server action to log usage for share events
+ * - Display error toasts on failure
+ *
+ * Key Features:
+ * - Each button calls handleShare(network, shareUrl)
+ * - handleShare opens a new tab for sharing & calls onShareAction in the background
+ * - We display a small "Share your results:" label plus buttons for each network
+ *
+ * @dependencies
+ * - onShareAction from app/(marketing)/actions-whatwillitmeantome
+ * - React Hook useTransition & useToast from Shadcn
  *
  * @notes
- * - Must import onShareAction from our new location
+ * - This code was updated to confirm that usage logs are created
+ * - The "text" prop is typically the short AI placard from the result
  */
+
+"use client"
 
 import React, { useTransition } from "react"
 import { Button } from "@/components/ui/button"
@@ -21,30 +32,37 @@ import { onShareAction } from "../actions-whatwillitmeantome"
 
 interface SocialSharingProps {
   /**
-   * The text or summary to share, typically from Mistral's one-sentence summary.
+   * The text or summary to share, typically from Mistral's one-sentence summary (placard).
    */
   text: string
 
   /**
-   * The URL that leads back to the site or a user-specific link.
+   * The URL that leads back to the site or a relevant page link.
    */
   url: string
 }
 
 /**
- * Provides social share buttons. On click, opens share URL in a new tab
- * and logs a usage event with onShareAction.
+ * @function SocialSharing
+ * A client component that renders social share buttons for multiple platforms.
+ * On click, it calls onShareAction(network) in the background to log usage,
+ * and opens a new tab with the share URL.
+ *
+ * @param text - The snippet text or summary to share
+ * @param url - The link you want included in the share
  */
 export default function SocialSharing({ text, url }: SocialSharingProps) {
   const { toast } = useToast()
   const [isPending, startTransition] = useTransition()
 
   /**
-   * Composes a share URL, opens in new tab, logs usage in background.
+   * Composes a share URL, opens in new tab, logs usage in background
    */
   function handleShare(network: string, shareUrl: string) {
+    // Open the share link in a new window
     window.open(shareUrl, "_blank", "noopener,noreferrer")
 
+    // Log usage asynchronously
     startTransition(async () => {
       const res = await onShareAction(network)
       if (!res.isSuccess) {
@@ -57,7 +75,7 @@ export default function SocialSharing({ text, url }: SocialSharingProps) {
     })
   }
 
-  // Build share URLs
+  // Build share URLs, encoding the snippet text and site URL
   const encodedText = encodeURIComponent(text)
   const encodedURL = encodeURIComponent(url)
 

@@ -10,7 +10,7 @@
  *       (b) Potential Benefits and Risks
  *       (c) Steps to Adapt
  *       (d) Short one-sentence summary (Placard) for social media
- *  - Emphasizing that “Even empathy and creativity might be in jeopardy”
+ *  - Emphasizing that "Even empathy and creativity might be in jeopardy"
  *  - Calling Mistral's API, handling errors
  *  - Parsing the final text into a simplified MistralResponse structure
  *
@@ -137,7 +137,7 @@ You are an AI assistant specializing in analyzing the impact of advanced AI on v
 Please adhere to the following guidelines:
 - Offer balanced, honest perspectives—acknowledge both challenges and opportunities.
 - Base your analysis on reputable research and expert forecasts.
-- Emphasize that “Even the most human-like aspects such as empathy and creativity might be in jeopardy.”
+- Emphasize that "Even the most human-like aspects such as empathy and creativity might be in jeopardy."
 - Deliver practical, actionable suggestions for how someone in the given profession might adapt.
 - Maintain an understandable style—avoid overly technical jargon unless needed.
 - Recognize user concerns about job security or obsolescence. Provide factual reassurance, but be realistic.
@@ -182,25 +182,58 @@ Additional details: ${details || "(none)"}
 
     // Parse the 4 labeled sections from Mistral's response
     try {
-      // Helper for extracting text from "SectionName:" to the next label
-      function extractSection(text: string, sectionName: string): string {
-        const normalized = text.replace(/\r\n/g, "\n")
-        const regex = new RegExp(
-          `\\s*${sectionName}\\s*:([\\s\\S]*?)(?=\\n\\s*\\w+\\s*:|$)`,
-          "i"
-        )
-        const match = normalized.match(regex)
-        if (!match) return ""
-        return match[1].trim()
+      // First, clean up the raw text by removing any ### markers and normalizing line endings
+      const cleanedRaw = raw.replace(/###\s*/g, "").replace(/\r\n/g, "\n");
+      
+      // Split the text into sections based on numbered section headers
+      const sections = [
+        { name: "General Outlook", content: "" },
+        { name: "Potential Benefits and Risks", content: "" },
+        { name: "Steps to Adapt", content: "" },
+        { name: "Placard", content: "" }
+      ];
+      
+      // Use a more robust approach to extract sections
+      let currentSection = -1;
+      
+      // First, identify all section boundaries
+      const sectionMatches = Array.from(
+        cleanedRaw.matchAll(/\d+\)\s*(General Outlook|Potential Benefits and Risks|Steps to Adapt|Placard)\s*:/gi)
+      );
+      
+      // If we found section markers, extract content between them
+      if (sectionMatches.length > 0) {
+        for (let i = 0; i < sectionMatches.length; i++) {
+          const match = sectionMatches[i];
+          const sectionName = match[1];
+          const startPos = match.index! + match[0].length;
+          const endPos = i < sectionMatches.length - 1 ? sectionMatches[i + 1].index : cleanedRaw.length;
+          
+          // Find the section index
+          const sectionIndex = sections.findIndex(s => 
+            s.name.toLowerCase() === sectionName.toLowerCase()
+          );
+          
+          if (sectionIndex !== -1) {
+            sections[sectionIndex].content = cleanedRaw.substring(startPos, endPos).trim();
+          }
+        }
+      } else {
+        // Fallback to simpler regex if numbered sections aren't found
+        for (const section of sections) {
+          const regex = new RegExp(`${section.name}\\s*:([\\s\\S]*?)(?=(?:${sections.map(s => s.name).join('|')})\\s*:|$)`, 'i');
+          const match = cleanedRaw.match(regex);
+          if (match) {
+            section.content = match[1].trim();
+          }
+        }
       }
-
-      // Now extract each field
-      const outlook = cleanText(extractSection(raw, "General Outlook"))
-      const benefitsAndRisks = cleanText(
-        extractSection(raw, "Potential Benefits and Risks")
-      )
-      const steps = cleanText(extractSection(raw, "Steps to Adapt"))
-      const placard = cleanText(extractSection(raw, "Placard"))
+      
+      // Apply cleanText to each section
+      const outlook = cleanText(sections[0].content);
+      const benefitsAndRisks = cleanText(sections[1].content);
+      const steps = cleanText(sections[2].content);
+      const placard = cleanText(sections[3].content);
 
       // Build final typed object
       const result: MistralResponse = {
@@ -238,12 +271,65 @@ Additional details: ${details || "(none)"}
 /**
  * @function cleanText
  * Cleans up common Markdown artifacts or repeated whitespace.
+ * Enhances formatting for subheadings and numbered lists.
  */
 function cleanText(text: string): string {
   if (!text) return ""
-  return text
-    .replace(/\*\*(.*?)\*\*/g, "$1") // remove bold
-    .replace(/\*(.*?)\*/g, "$1") // remove italics
-    .replace(/\n\s*\n/g, "\n\n") // normalize spacing
-    .trim()
+  
+  // First, normalize line endings and spacing
+  let cleanedText = text
+    .replace(/\r\n/g, "\n")
+    .replace(/\n\s*\n/g, "\n\n")
+    .trim();
+  
+  // Format bullet points to ensure proper alignment and each on its own line
+  // First, identify bullet points and convert them to list items
+  cleanedText = cleanedText.replace(/^-\s+(.*?)$/gm, "<li>$1</li>");
+  
+  // Then find consecutive list items and wrap them in a ul tag
+  // This approach avoids using the 's' flag
+  let inList = false;
+  let lines = cleanedText.split("\n");
+  let result = [];
+  
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+    
+    if (line.startsWith("<li>") && !inList) {
+      // Start a new list
+      result.push('<ul class="pl-5 list-disc">');
+      result.push(line);
+      inList = true;
+    } else if (line.startsWith("<li>") && inList) {
+      // Continue the list
+      result.push(line);
+    } else if (!line.startsWith("<li>") && inList) {
+      // End the list
+      result.push('</ul>');
+      result.push(line);
+      inList = false;
+    } else {
+      // Regular line
+      result.push(line);
+    }
+  }
+  
+  // Close any open list at the end
+  if (inList) {
+    result.push('</ul>');
+  }
+  
+  cleanedText = result.join("\n");
+  
+  // Apply other formatting
+  cleanedText = cleanedText
+    // Preserve existing formatting
+    .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>") // keep bold
+    .replace(/\*(.*?)\*/g, "<em>$1</em>") // keep italics
+    // Enhance subheadings - make "Benefits:" and "Risks:" larger and bold
+    .replace(/^(Benefits|Risks):/gm, '<h4 class="text-base font-semibold mt-4 mb-2">$1:</h4>')
+    // Enhance numbered lists - only bold the number part
+    .replace(/^(\d+\.)\s+/gm, "<strong>$1</strong> ");
+  
+  return cleanedText;
 }
