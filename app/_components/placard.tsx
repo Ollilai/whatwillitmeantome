@@ -1,27 +1,26 @@
 /**
  * @description
- * This client component provides a visually appealing "placard" to display
- * the short one-sentence summary (the "Placard") returned by Mistral.
+ * This client component provides a visually appealing card ("placard")
+ * that displays a short one-sentence summary (the "Placard") from the AI analysis.
  *
- * It is responsible for:
- * - Receiving the placard (summary) text as a prop
- * - Rendering it inside a stylish Card from shadcn
- * - Offering a visually appealing, production-ready look for sharing
+ * Responsibilities:
+ * - Receives the short summary as a prop
+ * - Renders it in a distinctive, production-grade design
+ * - Provides a fallback text if the summary is missing
  *
  * Key features:
- * - Uses Shadcn's <Card> and <CardContent> for consistent styling
- * - Emphasizes the summary with a larger or distinct text style
- * - Allows easy integration of future share buttons (step 6)
+ * - Uses a gradient header to make it visually appealing
+ * - Center-aligned for a neat layout
+ * - Comprehensive file-level and inline documentation
  *
  * @dependencies
- * - React for rendering
- * - Shadcn <Card> components for UI
+ * - React: for rendering
+ * - Shadcn's card components for consistent UI styling
+ * - TypeScript for type safety
  *
  * @notes
- * - This step directly addresses Step 5 of the plan:
- *   "Ensure Mistral Output is Production-Ready & Placard is Appealing"
- * - We do not yet add social share code—this will happen in Step 6.
- * - We provide the entire file content per the project instructions
+ * - This is intended for Step 5 of the plan: "Ensure Mistral Output is Production-Ready & Placard is Appealing."
+ * - The actual social sharing is implemented in Step 6, so not included here.
  */
 
 "use client"
@@ -31,37 +30,43 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 
 /**
  * @interface PlacardProps
- * @property {string} summary
- *  The short one-sentence summary from the Mistral response. Typically something
- *  a user might want to share on social media.
+ * Represents the props for the Placard component.
  */
 interface PlacardProps {
+  /**
+   * The short, one-sentence summary returned by the AI analysis.
+   */
   summary: string
 }
 
 /**
  * @function Placard
- * A visually appealing card that displays the short summary from Mistral.
+ * A visually appealing "placard" that displays a short AI-generated summary inside a card.
  *
- * @param {PlacardProps} props - Contains the summary text to display
- * @returns A styled card containing the summary
+ * @param {PlacardProps} props - The component's props containing the summary text.
+ * @returns A card element with a gradient header and the summary text in the main body.
  *
  * @notes
- * - Future expansions might include social share buttons, copy to clipboard, etc.
- * - We keep the layout minimal here, focusing on "production-readiness"
- *   and an appealing design.
+ * - If the summary is empty or missing, a fallback message "No summary available" is displayed.
  */
 export default function Placard({ summary }: PlacardProps) {
+  // Fallback text if summary is empty
+  const content = summary?.trim() ? summary : "No summary available"
+
   return (
     <Card className="mx-auto w-full max-w-2xl border shadow-sm">
-      <CardHeader>
+      {/* 
+        Gradient header for a more appealing look
+        The gradient can be customized via tailwind config or inline styles 
+      */}
+      <CardHeader className="bg-gradient-to-r from-blue-600 to-purple-600 p-4 text-white">
         <CardTitle className="text-center text-lg font-semibold">
           Quick Summary
         </CardTitle>
       </CardHeader>
 
-      <CardContent className="flex flex-col items-center justify-center gap-2 text-center">
-        <p className="text-foreground text-base">{summary}</p>
+      <CardContent className="flex flex-col items-center justify-center gap-2 p-6 text-center">
+        <p className="text-muted-foreground text-base">{content}</p>
       </CardContent>
     </Card>
   )

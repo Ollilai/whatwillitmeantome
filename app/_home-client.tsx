@@ -48,7 +48,7 @@ import { Slider } from "@/components/ui/slider"
 import { Textarea } from "@/components/ui/textarea"
 import { onSubmitAction } from "@/app/(marketing)/actions-whatwillitmeantome"
 import type { ActionState } from "@/types"
-import Placard from "./_components/placard" // Our newly created component
+import Placard from "@/app/_components/placard" // Our newly created component
 
 /**
  * @description
