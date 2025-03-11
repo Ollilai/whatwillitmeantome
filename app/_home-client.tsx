@@ -1,25 +1,32 @@
-"use client"
-
 /**
  * @description
- * This client component handles the user input form, calls Mistral (via server action),
- * and displays the resulting AI analysis for a profession.
+ * This client component is the main entry point for user input, AI analysis,
+ * and displaying results on the homepage ("/").
  *
  * Responsibilities:
- *  - Render the form (profession, experience, region, skillLevel, details)
- *  - On form submit, call onSubmitAction from "@/actions/ai/handle-mistral-actions" (indirectly)
- *  - Store and display AI results: Outlook, Benefits/Risks, Steps, Placard
- *  - Center the results, no duplicate disclaimers
+ *  - Render the form for capturing profession, experience, region, etc.
+ *  - On submit, call onSubmitAction to query Mistral with user data
+ *  - Store & display AI results (Outlook, Benefits/Risks, Steps, Placard)
+ *  - Present a single disclaimers block in the main page (app/page.tsx)
  *
- * Key Features:
- *  - React Hook Form + Zod validation for user input
- *  - Graceful error handling & loading states
- *  - Single, central result display in a nice card layout
+ * Key features:
+ *  - Validates input with zod + React Hook Form
+ *  - Uses a distinct <Placard> component for the short summary text
+ *  - Ensures the results are center-aligned and disclaimers are not duplicated
+ *
+ * @dependencies
+ * - React Hook Form for form management
+ * - Zod for input validation
+ * - The handleMistralAction (via onSubmitAction) for calling Mistral
+ * - The new <Placard> component for the one-sentence summary
  *
  * @notes
- *  - We've removed disclaimers from subcomponents to unify disclaimers in the main page.
- *  - We are calling the Mistral action through our standard server action handleMistralAction
+ *  - Step 5 specifically addresses making the "Placard" visually appealing.
+ *    This file now imports <Placard> to show the summary in a Shadcn card.
+ *  - We'll add social sharing enhancements (Step 6) in a later step.
  */
+
+"use client"
 
 import React, { useState, useTransition } from "react"
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -39,12 +46,13 @@ import {
 import { Input } from "@/components/ui/input"
 import { Slider } from "@/components/ui/slider"
 import { Textarea } from "@/components/ui/textarea"
-import { onSubmitAction } from "@/app/(marketing)/actions-whatwillitmeantome" // Correct path to the actions file
-// If you prefer direct import: import { handleMistralAction } from "@/actions/ai/handle-mistral-actions"
+import { onSubmitAction } from "@/app/(marketing)/actions-whatwillitmeantome"
 import type { ActionState } from "@/types"
+import Placard from "./_components/placard" // Our newly created component
 
 /**
- * Define schema for the user input fields using Zod
+ * @description
+ * The shape of form inputs, validated with zod:
  */
 const formSchema = z.object({
   profession: z
@@ -72,7 +80,13 @@ const formSchema = z.object({
 type FormInputsType = z.infer<typeof formSchema>
 
 /**
- * The shape of data we expect back from the Mistral server action
+ * @description
+ * The shape of data returned by Mistral:
+ *  - profession
+ *  - outlook
+ *  - benefitsAndRisks
+ *  - steps
+ *  - placard
  */
 interface MistralResponse {
   profession: string
@@ -83,15 +97,24 @@ interface MistralResponse {
 }
 
 /**
- * @component HomeClient
- * The main client component that houses the user form and displays the Mistral analysis.
+ * @function HomeClient
+ * Client component for the homepage: handles the entire user journey of
+ * entering data -> getting a Mistral-based analysis -> displaying results.
+ *
+ * @returns React element
+ *
+ * @notes
+ *  - We store the AI result in local state (result).
+ *  - If there's a valid result, we display the placard + other sections.
+ *  - We ensure disclaimers are only once (in app/page.tsx).
+ *  - Step 5 ensures the placard is visually appealing and production-ready.
  */
 export default function HomeClient() {
   const [result, setResult] = useState<MistralResponse | null>(null)
   const [isAnalyzing, setIsAnalyzing] = useState(false)
   const [isPending, startTransition] = useTransition()
 
-  // Initialize react-hook-form
+  // Setup form
   const form = useForm<FormInputsType>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -104,7 +127,11 @@ export default function HomeClient() {
   })
 
   /**
-   * On form submission, call the server action that ultimately calls Mistral
+   * @function onSubmit
+   * Submit the user input for AI analysis via onSubmitAction, then
+   * store the Mistral response in local state if successful.
+   *
+   * @param {FormInputsType} data - user-provided form inputs
    */
   async function onSubmit(data: FormInputsType) {
     setIsAnalyzing(true)
@@ -127,7 +154,7 @@ export default function HomeClient() {
           return
         }
 
-        // If success, store the Mistral result in our local state
+        // If success, store Mistral result
         const typedData = response.data as MistralResponse
         setResult(typedData)
         toast({
@@ -150,7 +177,7 @@ export default function HomeClient() {
 
   return (
     <div className="w-full max-w-3xl space-y-8">
-      {/** FORM SECTION */}
+      {/* FORM SECTION */}
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
           {/* Profession */}
@@ -279,20 +306,20 @@ export default function HomeClient() {
         </form>
       </Form>
 
-      {/** RESULTS SECTION - only shows if we have data */}
+      {/* RESULTS SECTION */}
       {result && (
         <div className="space-y-4 text-center">
           <h2 className="text-xl font-semibold">
             Analysis Results for {result.profession}
           </h2>
 
-          {/* Placard: short summary */}
-          <div className="mx-auto w-full max-w-2xl rounded-md border p-4 text-center shadow-sm">
-            <h3 className="mb-2 text-lg font-medium">Quick Summary</h3>
-            <p className="text-foreground text-sm">{result.placard}</p>
-          </div>
+          {/**
+           * Step 5 improvement:
+           * We replace the old raw block with our new <Placard> for the one-sentence summary.
+           */}
+          <Placard summary={result.placard} />
 
-          {/* Outlook, Benefits/Risks, Steps */}
+          {/* Outlook & Benefits/Risks & Steps in a grid */}
           <div className="grid gap-4 md:grid-cols-2">
             {/* Outlook */}
             <div className="mx-auto w-full max-w-md rounded-md border p-4 text-left">
@@ -305,14 +332,14 @@ export default function HomeClient() {
             {/* Benefits & Risks */}
             <div className="mx-auto w-full max-w-md rounded-md border p-4 text-left">
               <h3 className="mb-2 text-base font-semibold">
-                Potential Benefits & Risks
+                Potential Benefits &amp; Risks
               </h3>
               <p className="text-foreground whitespace-pre-line text-sm">
                 {result.benefitsAndRisks}
               </p>
             </div>
 
-            {/* Steps to Adapt (spans two columns if wide) */}
+            {/* Steps to Adapt (span two columns on wide screens) */}
             <div className="mx-auto w-full max-w-3xl rounded-md border p-4 text-left md:col-span-2">
               <h3 className="mb-2 text-base font-semibold">Steps to Adapt</h3>
               <p className="text-foreground whitespace-pre-line text-sm">
