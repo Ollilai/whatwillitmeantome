@@ -1,22 +1,25 @@
+// Filepath: components/landing/footer.tsx
+
 /**
  * @description
- * This client component provides the footer for the app.
+ * This client component provides the footer for the marketing site.
  *
  * It is responsible for:
- * - Displaying site links and relevant references, such as About, Features, etc.
+ * - Displaying site links (About, Blog, Careers, etc.)
+ * - Displaying social links and a copyright
  *
- * Key changes for Step 2:
- * - Removed the "Pricing" link to ensure no references to /pricing remain.
+ * Key features:
+ * - More professional spacing and link styling
+ * - Removed references to Pricing
  *
  * @dependencies
- * - React and Next.js for component structure
+ * - React for the component
  * - Lucide-react for icons
- * - Link from next/link for navigation
+ * - Link for next navigation
  *
  * @notes
- * - This complete file content replaces the old version. The only change is that
- *   we've removed the link to `/pricing` in the "Product" section. Everything else
- *   is identical to the original code.
+ * - We maintain a typical four-column layout
+ * - You can rename "Your Company" to your real brand name if you wish
  */
 
 "use client"
@@ -28,6 +31,7 @@ export default function Footer() {
   return (
     <footer className="border-t">
       <div className="container mx-auto max-w-7xl px-4 py-12 md:px-6">
+        {/* Footer columns */}
         <div className="grid grid-cols-1 gap-8 md:grid-cols-4">
           <div className="space-y-4">
             <h3 className="text-lg font-bold">Company</h3>
@@ -66,10 +70,6 @@ export default function Footer() {
               >
                 Features
               </Link>
-
-              {/* 
-                Removed the Pricing link previously here 
-              */}
 
               <Link
                 href="/docs"
@@ -130,7 +130,8 @@ export default function Footer() {
           </div>
         </div>
 
-        <div className="text-muted-foreground mt-12 pt-8 text-center">
+        {/* Bottom row */}
+        <div className="text-muted-foreground mt-12 border-t pt-6 text-center">
           <p>
             &copy; {new Date().getFullYear()} Your Company. All rights reserved.
           </p>

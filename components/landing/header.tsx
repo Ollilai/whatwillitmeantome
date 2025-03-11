@@ -1,25 +1,26 @@
+// Filepath: components/landing/header.tsx
+
 /**
  * @description
- * This client component provides the header for the app.
+ * This client component provides the header for the app's marketing pages.
  *
- * Key responsibilities:
- * - Displays site navigation links (Home, About, Features, etc.)
- * - Shows sign-in, sign-up, or user-button states based on auth
- * - Implements a mobile menu with framer-motion
+ * It is responsible for:
+ * - Displaying site navigation links
+ * - Showing sign-in/sign-up or user-button states based on auth
+ * - Handling a mobile menu with framer-motion
  *
- * Key changes for Step 2:
- * - Removed the "/pricing" reference from the `navLinks` array,
- *   ensuring no user navigates to pricing from the header.
+ * Key features:
+ * - Unified brand text changed to "WhatWillItMeanToMe"
+ * - Production-ready spacing, transitions, and hover states
  *
  * @dependencies
- * - @clerk/nextjs for auth states
+ * - Clerk (SignedIn, SignedOut, SignInButton, SignUpButton, UserButton)
  * - framer-motion for mobile menu animation
  * - lucide-react for icons
- * - next/link for navigation
  *
  * @notes
- * - The rest of the code remains the same as before, except we've deleted
- *   the `{ href: "/pricing", label: "Pricing" }` object from `navLinks`.
+ * - We removed references to "Receipt AI"
+ * - All other references remain
  */
 
 "use client"
@@ -40,7 +41,6 @@ import { useEffect, useState } from "react"
 const navLinks = [
   { href: "/about", label: "About" },
   { href: "/features", label: "Features" },
-  // Removed the Pricing link
   { href: "/contact", label: "Contact" }
 ]
 
@@ -74,17 +74,22 @@ export default function Header() {
       }`}
     >
       <div className="container mx-auto flex max-w-7xl items-center justify-between p-4">
+        {/* Brand block with updated name */}
         <motion.div
           className="flex items-center space-x-2 hover:cursor-pointer hover:opacity-80"
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
         >
+          {/* Optional brand icon or placeholder */}
           <Receipt className="size-6" />
+
+          {/* Updated brand name */}
           <Link href="/" className="text-xl font-bold">
-            Receipt AI
+            WhatWillItMeanToMe
           </Link>
         </motion.div>
 
+        {/* Desktop nav */}
         <nav className="absolute left-1/2 hidden -translate-x-1/2 space-x-2 md:flex">
           {navLinks.map(link => (
             <motion.div
@@ -119,6 +124,7 @@ export default function Header() {
           </SignedIn>
         </nav>
 
+        {/* Right side - sign in/up or user button */}
         <div className="flex items-center space-x-4">
           <SignedOut>
             <SignInButton>
@@ -144,6 +150,7 @@ export default function Header() {
             <UserButton />
           </SignedIn>
 
+          {/* Mobile menu toggle */}
           <motion.div
             className="md:hidden"
             whileHover={{ scale: 1.05 }}
@@ -165,6 +172,7 @@ export default function Header() {
         </div>
       </div>
 
+      {/* Mobile nav */}
       {isMenuOpen && (
         <motion.nav
           initial={{ opacity: 0, y: -10 }}
