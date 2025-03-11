@@ -4,6 +4,11 @@
 
 export interface MistralReportData {
   /**
+   * The profession being analyzed
+   */
+  profession: string
+
+  /**
    * One-sentence summary of the AI's analysis
    */
   summary: string

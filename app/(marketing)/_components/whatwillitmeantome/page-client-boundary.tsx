@@ -16,9 +16,19 @@
  *   within the <ReportDisplay> itself.
  */
 
-import React from "react"
+import React, { useState } from "react"
+import { MistralReportData } from "./report-display-types"
+import FormWrapper from "./form-wrapper"
+import ReportDisplay from "./report-display"
+import Placard from "./placard"
 
 export default function PageClientBoundary() {
+  const [mistralData, setMistralData] = useState<MistralReportData | null>(null)
+
+  const handleSuccess = (data: MistralReportData) => {
+    setMistralData(data)
+  }
+
   return (
     <div className="space-y-4 p-8">
       <h1 className="mb-4 text-2xl font-bold">What Will It Mean To Me?</h1>
@@ -28,9 +38,14 @@ export default function PageClientBoundary() {
         affect you and provide a structured report.
       </p>
 
-      <div className="rounded-md border p-4">
-        <p>Form will appear here</p>
-      </div>
+      <FormWrapper onAiSuccess={handleSuccess} />
+
+      {mistralData && (
+        <>
+          <ReportDisplay data={mistralData} />
+          <Placard profession={mistralData.profession} data={mistralData} />
+        </>
+      )}
     </div>
   )
 }

@@ -35,6 +35,7 @@ import { Mistral } from '@mistralai/mistralai'
  * Interface for the structured response from Mistral AI
  */
 interface MistralResponse {
+  profession: string
   outlook: string
   benefits: string
   risks: string
@@ -155,6 +156,7 @@ export async function handleMistralAction(
       try {
         // Extract structured data from the text response
         const parsedResponse: MistralResponse = {
+          profession,
           outlook: extractSection(responseContent, "Career Outlook"),
           benefits: extractSection(responseContent, "Benefits"),
           risks: extractSection(responseContent, "Risks"),
