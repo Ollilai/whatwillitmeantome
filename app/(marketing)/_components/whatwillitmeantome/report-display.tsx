@@ -37,10 +37,10 @@ export default function ReportDisplay({ data }: ReportDisplayProps) {
     <div className="my-8 w-full max-w-3xl space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle>Analysis Results</CardTitle>
+          <CardTitle>Analysis Results for {data.profession}</CardTitle>
         </CardHeader>
         <CardContent>
-          <p>{data.summary}</p>
+          <p>{data.placard}</p>
         </CardContent>
       </Card>
 
@@ -56,37 +56,28 @@ export default function ReportDisplay({ data }: ReportDisplayProps) {
       <div className="grid gap-4 md:grid-cols-2">
         <Card>
           <CardHeader>
-            <CardTitle>Impact</CardTitle>
+            <CardTitle>Outlook</CardTitle>
           </CardHeader>
           <CardContent>
-            <p>{data.impact}</p>
+            <p>{data.outlook}</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader>
-            <CardTitle>Opportunities</CardTitle>
+            <CardTitle>Benefits & Risks</CardTitle>
           </CardHeader>
           <CardContent>
-            <p>{data.opportunities}</p>
+            <p>{data.benefitsAndRisks}</p>
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="md:col-span-2">
           <CardHeader>
-            <CardTitle>Challenges</CardTitle>
+            <CardTitle>Steps to Adapt</CardTitle>
           </CardHeader>
           <CardContent>
-            <p>{data.challenges}</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Skills to Develop</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p>{data.skills}</p>
+            <p>{data.steps}</p>
           </CardContent>
         </Card>
       </div>

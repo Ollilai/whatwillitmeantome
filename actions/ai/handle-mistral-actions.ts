@@ -1,28 +1,25 @@
 /**
  * @description
  * This server action file provides functionality to handle calls to Mistral's API
- * in order to generate a realistic, empathetic analysis of how AI might affect
- * a specific profession.
+ * to generate a concise, structured analysis for how AGI might affect a profession.
  *
  * It is responsible for:
- *  - Accepting user input (profession, experience, region, skillLevel, details)
- *  - Constructing a system prompt for Mistral that enforces the advanced guidelines
- *  - Calling Mistral's API with proper auth headers
- *  - Parsing the result into a structured object containing (a) outlook, (b) benefits/risks,
- *    (c) actionable steps, (d) short summary placard
- *  - Returning an ActionState containing the final data or an error
- *  - Logging usage or events as needed (although usage logging is mostly in usage-actions)
- *
- * @dependencies
- *  - createUsageLogAction from "@/actions/db/usage-actions" for usage logging
- *  - Mistral from "@mistralai/mistralai"
+ *  - Accepting user inputs about profession, experience, region, skillLevel, and optional details
+ *  - Constructing a system prompt enforcing the advanced guidelines:
+ *       (a) General Outlook
+ *       (b) Potential Benefits and Risks
+ *       (c) Steps to Adapt
+ *       (d) Short one-sentence summary (Placard) for social media
+ *  - Emphasizing that “Even empathy and creativity might be in jeopardy”
+ *  - Calling Mistral's API, handling errors
+ *  - Parsing the final text into a simplified MistralResponse structure
  *
  * @notes
- *  - We add a system message containing the advanced guidelines specified by the technical specification
- *  - The user prompt is appended with user-provided details about profession, experience, region, skill level, etc.
- *  - We parse out the relevant sections: outlook, benefits (and risks), steps, summary
- *  - The short placard is stored in `summary`
- *  - We are conscious to mention empathy & creativity as threatened, and maintain a balanced perspective
+ *  - We specifically removed references to "Impact," "Opportunities," "Challenges," etc.
+ *  - Our new structured sections are simpler:
+ *      "General Outlook:", "Potential Benefits and Risks:", "Steps to Adapt:", "Placard:"
+ *  - We are returning a single disclaimers reference in the prompt to maintain empathy & realism.
+ *  - We do not continue the conversation after the response.
  */
 
 "use server"
@@ -32,8 +29,8 @@ import { createUsageLogAction } from "@/actions/db/usage-actions"
 import { Mistral } from "@mistralai/mistralai"
 
 /**
- * Interface for the structured response from Mistral AI after it formats
- * the analysis. This object captures the key sections we display to the user.
+ * Describes the shape of data we want from Mistral: 
+ * four sections plus the profession for clarity.
  */
 interface MistralResponse {
   /**
@@ -42,67 +39,49 @@ interface MistralResponse {
   profession: string
 
   /**
-   * One-sentence summary of the AI's analysis
-   */
-  summary: string
-
-  /**
-   * Detailed analysis of how AI will impact the profession
-   */
-  impact: string
-
-  /**
-   * Opportunities that may arise from AI adoption
-   */
-  opportunities: string
-
-  /**
-   * Challenges that may arise from AI adoption
-   */
-  challenges: string
-
-  /**
-   * Recommended skills to develop
-   */
-  skills: string
-
-  /**
-   * Outlook for the profession in the next 5-10 years
+   * The "General Outlook" section
    */
   outlook: string
 
   /**
-   * Potential benefits of AI in this profession
+   * The "Potential Benefits and Risks" section
    */
-  benefits: string
+  benefitsAndRisks: string
 
   /**
-   * Potential risks of AI in this profession
-   */
-  risks: string
-
-  /**
-   * Actionable steps to prepare for AI changes
+   * The "Steps to Adapt" section
    */
   steps: string
+
+  /**
+   * The short summary, i.e. "Placard," a one-sentence statement
+   */
+  placard: string
 }
 
 /**
- * Handles the interaction with Mistral AI to generate career insights based on the
- * advanced guidelines. This method merges a system message with user details to ensure
- * we get a well-structured and empathetic response about AI's impact on the profession.
+ * @function handleMistralAction
+ * @async
  *
- * @param profession - The profession to analyze
- * @param experience - Years of experience
- * @param region - Geographic region
- * @param skillLevel - Self-rated skill level (1-10)
- * @param details - Additional optional details the user may provide
- * @returns Promise<ActionState<MistralResponse>>
+ * @description
+ * Generates an AI-based analysis of how AGI may impact a given profession,
+ * returning a structured object with four sections:
+ *  1) general outlook
+ *  2) potential benefits & risks
+ *  3) actionable steps to adapt
+ *  4) short summary (placard)
+ *
+ * @param profession - user-provided profession
+ * @param experience - user-provided years of experience
+ * @param region - user-provided region
+ * @param skillLevel - user-provided skill level
+ * @param details - user-provided optional extra details
+ *
+ * @returns {Promise<ActionState<MistralResponse>>} - success/failure + data
  *
  * @notes
- *  - The system content enforces guidelines: big AI impact, empathy, creativity at risk,
- *    structured sections (a/b/c/d), do not continue conversation, etc.
- *  - We parse the final text into the relevant fields or default if missing.
+ *  - We emphasize "Even empathy and creativity might be in jeopardy."
+ *  - We create usage logs for "mistral-analysis."
  */
 export async function handleMistralAction(
   profession: string,
@@ -112,9 +91,7 @@ export async function handleMistralAction(
   details?: string
 ): Promise<ActionState<MistralResponse>> {
   try {
-    // ------------------------------------------------------
-    // 1. Validate inputs
-    // ------------------------------------------------------
+    // Validate inputs
     if (!profession) {
       return { isSuccess: false, message: "Profession is required." }
     }
@@ -134,179 +111,123 @@ export async function handleMistralAction(
       }
     }
 
-    // ------------------------------------------------------
-    // 2. Get API key from environment
-    // ------------------------------------------------------
+    // Check for Mistral API key
     const mistralApiKey = process.env.MISTRAL_API_KEY
     if (!mistralApiKey) {
-      console.error("Mistral API key not found in environment variables")
+      console.error("Mistral API key not found in environment variables.")
       return {
         isSuccess: false,
         message: "API configuration error. Please contact support."
       }
     }
 
-    // ------------------------------------------------------
-    // 3. Construct the system + user prompt
-    // ------------------------------------------------------
-
-    // The specification states we must provide a system message with advanced guidelines
-    const systemMessage = `
+    /**
+     * This system prompt instructs Mistral to produce EXACTLY FOUR sections:
+     * 1) General Outlook
+     * 2) Potential Benefits and Risks
+     * 3) Steps to Adapt
+     * 4) Placard
+     *
+     * We mention that empathy/creativity might be threatened.
+     * We also request no conversation continuation after the response.
+     */
+    const systemPrompt = `
 You are an AI assistant specializing in analyzing the impact of advanced AI on various professions in a world where humanity has achieved AGI. Your mission is to provide clear, factual, and realistic insights into how AI is likely to transform a given profession.
 
 Please adhere to the following guidelines:
-• Offer balanced, honest perspectives—acknowledge both the challenges and opportunities that AI may bring.
-• Base your analysis on current trends, reputable research, and expert forecasts.
-• When you speculate on future developments, keep in mind that you believe AI will have a huge impact on almost all professions.
-• Even the most human-like aspects, like empathy and creativity, are in jeopardy.
-• Deliver practical, actionable suggestions for how someone in the given profession might adapt or remain competitive.
-• Maintain an engaging and understandable writing style—avoid overly technical jargon unless needed to illustrate key points.
-• Emphasize empathy and respect, recognizing user concerns about job security, skill obsolescence, or ethical implications.
-• Provide reassurance with facts and strategies, not sugarcoating.
+- Offer balanced, honest perspectives—acknowledge both challenges and opportunities.
+- Base your analysis on reputable research and expert forecasts.
+- Emphasize that “Even the most human-like aspects such as empathy and creativity might be in jeopardy.”
+- Deliver practical, actionable suggestions for how someone in the given profession might adapt.
+- Maintain an understandable style—avoid overly technical jargon unless needed.
+- Recognize user concerns about job security or obsolescence. Provide factual reassurance, but be realistic.
+- Provide the response in exactly four labeled sections:
+  1) General Outlook:
+  2) Potential Benefits and Risks:
+  3) Steps to Adapt:
+  4) Placard:
+     (This is a single-sentence summary that someone could share on social media.)
+- Do not add additional sections beyond these four.
+- Do not continue the conversation after your response.
 
-Your response must be structured exactly as follows, with these exact section headers:
-
-Outlook:
-[Write a general outlook for the profession in the next 5-10 years]
-
-Impact:
-[Provide detailed analysis of how AI will impact this profession]
-
-Opportunities:
-[List specific opportunities that may arise]
-
-Challenges:
-[List specific challenges to be aware of]
-
-Skills:
-[List key skills to develop]
-
-Benefits and Risks:
-Benefits:
-[List specific benefits]
-Risks:
-[List specific risks]
-
-Steps to Adapt:
-[Provide actionable steps]
-
-Placard:
-[Write one sentence summary]
-
-Here is the user scenario to analyze:
+Analyze the following user info:
 Profession: ${profession}
-Experience (years): ${experience}
+Years of experience: ${experience}
 Region: ${region}
 Skill Level: ${skillLevel}
-${details ? `Additional user details: ${details}` : ""}
-
-Respond using exactly the section headers shown above. Do not add any other text or continue the conversation.
+Additional details: ${details || "(none)"}
 `.trim()
 
-    // ------------------------------------------------------
-    // 4. Make the API request to Mistral
-    // ------------------------------------------------------
-    const client = new Mistral({ apiKey: mistralApiKey })
-
-    // Optionally, log usage event if desired
+    // Log usage event if desired
     try {
       await createUsageLogAction("mistral-analysis", "system")
-    } catch (loggingError) {
-      console.warn("Logging usage is not critical, continuing:", loggingError)
+    } catch (logError) {
+      console.warn("Usage logging is not critical; continuing anyway:", logError)
     }
 
-    // We pass both a system message and user message to the Mistral API. The user message
-    // in this scenario is minimal, because we've effectively integrated all logic in systemMessage.
-    // Alternatively, we could do system vs user, but for simplicity, we'll do:
-    const chatResponse = await client.chat.complete({
+    // Create Mistral client and request
+    const client = new Mistral({ apiKey: mistralApiKey })
+    const response = await client.chat.complete({
       model: "mistral-large-latest",
-      messages: [
-        { role: "system", content: systemMessage }
-        // We could add a user message role if needed, but not strictly required
-      ]
+      messages: [{ role: "system", content: systemPrompt }]
     })
 
-    // Ensure we have a valid response
-    if (!chatResponse?.choices?.[0]?.message?.content) {
-      console.error("Invalid or empty response from Mistral")
-      return {
-        isSuccess: false,
-        message: "Failed to get a valid Mistral response."
-      }
+    if (!response?.choices?.[0]?.message?.content) {
+      console.error("Empty or invalid Mistral response.")
+      return { isSuccess: false, message: "Failed to get a valid AI response." }
     }
 
-    // The raw text from Mistral
-    const responseContent = chatResponse.choices[0].message.content.toString()
+    const raw = response.choices[0].message.content.toString()
+    console.log("Mistral raw output:", raw)
 
-    // Add debug logging
-    console.log("Raw response from Mistral:", responseContent)
-
-    // ------------------------------------------------------
-    // 5. Parse the response into the structured object
-    // ------------------------------------------------------
+    // Parse the 4 labeled sections from Mistral's response
     try {
-      /**
-       * We attempt to parse the labeled sections from the response
-       */
-      const outlook = cleanMarkdown(extractSection(responseContent, "Outlook"))
-      const impact = cleanMarkdown(extractSection(responseContent, "Impact"))
-      const opportunities = cleanMarkdown(extractSection(responseContent, "Opportunities"))
-      const challenges = cleanMarkdown(extractSection(responseContent, "Challenges"))
-      const skills = cleanMarkdown(extractSection(responseContent, "Skills"))
-      const benefitsAndRisks = cleanMarkdown(extractSection(responseContent, "Benefits and Risks"))
-      const steps = cleanMarkdown(extractSection(responseContent, "Steps to Adapt"))
-      const summary = cleanMarkdown(extractSection(responseContent, "Placard"))
-
-      // Debug logging
-      console.log("Extracted sections:", {
-        outlook,
-        impact,
-        opportunities,
-        challenges,
-        skills,
-        benefitsAndRisks,
-        steps,
-        summary
-      })
-
-      // Split benefits and risks into separate fields
-      const [benefits, risks] = splitBenefitsAndRisks(benefitsAndRisks)
-
-      // Debug logging
-      console.log("Split benefits and risks:", { benefits, risks })
-
-      // Construct final typed object
-      const parsed: MistralResponse = {
-        profession,
-        outlook: outlook || "No outlook found.",
-        impact: impact || "No impact analysis found.",
-        opportunities: opportunities || "No opportunities found.",
-        challenges: challenges || "No challenges found.",
-        skills: skills || "No skills found.",
-        benefits: benefits || "No benefits found.",
-        risks: risks || "No risks found.",
-        steps: steps || "No adaptation steps found.",
-        summary: summary || "No placard found."
+      // Helper for extracting text from "SectionName:" to the next label
+      function extractSection(text: string, sectionName: string): string {
+        const normalized = text.replace(/\r\n/g, "\n")
+        const regex = new RegExp(
+          `\\s*${sectionName}\\s*:([\\s\\S]*?)(?=\\n\\s*\\w+\\s*:|$)`,
+          "i"
+        )
+        const match = normalized.match(regex)
+        if (!match) return ""
+        return match[1].trim()
       }
 
-      // Debug logging
-      console.log("Final parsed response:", parsed)
+      // Now extract each field
+      const outlook = cleanText(extractSection(raw, "General Outlook"))
+      const benefitsAndRisks = cleanText(
+        extractSection(raw, "Potential Benefits and Risks")
+      )
+      const steps = cleanText(extractSection(raw, "Steps to Adapt"))
+      const placard = cleanText(extractSection(raw, "Placard"))
+
+      // Build final typed object
+      const result: MistralResponse = {
+        profession,
+        outlook: outlook || "No general outlook found.",
+        benefitsAndRisks:
+          benefitsAndRisks || "No benefits and risks analysis found.",
+        steps: steps || "No steps found.",
+        placard: placard || "No placard summary found."
+      }
+
+      console.log("Parsed MistralResponse:", result)
 
       return {
         isSuccess: true,
-        message: "Successfully generated advanced career insights",
-        data: parsed
+        message: "Analysis completed successfully",
+        data: result
       }
     } catch (parseError) {
-      console.error("Error extracting structured fields:", parseError)
+      console.error("Error parsing Mistral output:", parseError)
       return {
         isSuccess: false,
-        message: "Failed to parse structured AI response. Try again later."
+        message: "Failed to parse structured AI output. Try again later."
       }
     }
   } catch (error) {
-    // Catch-all for unexpected or network errors
-    console.error("Unexpected error in handleMistralAction:", error)
+    console.error("Unhandled error in handleMistralAction:", error)
     return {
       isSuccess: false,
       message: "An unexpected error occurred. Please try again later."
@@ -315,71 +236,14 @@ Respond using exactly the section headers shown above. Do not add any other text
 }
 
 /**
- * Helper function that looks for a line like "SectionName:" and extracts
- * all text until the next section header or end of content.
+ * @function cleanText
+ * Cleans up common Markdown artifacts or repeated whitespace.
  */
-function extractSection(text: string, sectionName: string): string {
-  // First, normalize line endings and trim the text
-  const normalizedText = text.replace(/\r\n/g, '\n').trim()
-  
-  // Create a more flexible regex that:
-  // 1. Allows for optional whitespace before the section name
-  // 2. Matches the section name case-insensitively
-  // 3. Captures everything until the next section header or end of text
-  const regex = new RegExp(
-    `\\s*${sectionName}\\s*:([\\s\\S]*?)(?=\\s*\\w+\\s*:|$)`,
-    'i'
-  )
-  
-  const match = normalizedText.match(regex)
-  if (!match) {
-    console.log(`No match found for section: ${sectionName}`)
-    return ""
-  }
-  
-  const result = match[1].trim()
-  console.log(`Extracted ${sectionName}:`, result || "(empty)")
-  return result
-}
-
-/**
- * Helper function to split the combined benefits and risks section into separate fields
- */
-function splitBenefitsAndRisks(text: string): [string, string] {
-  if (!text) {
-    console.log("Benefits and Risks text is empty")
-    return ["No benefits found.", "No risks found."]
-  }
-
-  // Normalize line endings and trim
-  const normalizedText = text.replace(/\r\n/g, '\n').trim()
-  
-  // More flexible regex patterns
-  const benefitsMatch = normalizedText.match(/(?:Benefits\s*:)([\s\S]*?)(?=(?:\s*Risks\s*:|$))/i)
-  const risksMatch = normalizedText.match(/(?:Risks\s*:)([\s\S]*?)$/i)
-  
-  const benefits = benefitsMatch ? benefitsMatch[1].trim() : "No benefits found."
-  const risks = risksMatch ? risksMatch[1].trim() : "No risks found."
-  
-  console.log("Split Benefits and Risks:", { benefits, risks })
-  
-  return [benefits, risks]
-}
-
-/**
- * Helper function to clean up markdown formatting from text
- */
-function cleanMarkdown(text: string): string {
+function cleanText(text: string): string {
   if (!text) return ""
-  
   return text
-    // Remove markdown bold/italic
-    .replace(/\*\*(.*?)\*\*/g, '$1')  // Remove **bold**
-    .replace(/\*(.*?)\*/g, '$1')      // Remove *italic*
-    // Remove markdown lists
-    .replace(/^\s*[-*]\s+/gm, '• ')   // Convert - or * to bullet points
-    .replace(/^\s*\d+\.\s+/gm, '')    // Remove numbered lists
-    // Clean up extra whitespace
-    .replace(/\n\s*\n/g, '\n\n')      // Normalize multiple newlines
+    .replace(/\*\*(.*?)\*\*/g, "$1") // remove bold
+    .replace(/\*(.*?)\*/g, "$1") // remove italics
+    .replace(/\n\s*\n/g, "\n\n") // normalize spacing
     .trim()
 }

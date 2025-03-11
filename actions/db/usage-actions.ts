@@ -4,17 +4,17 @@
  * It includes creating and retrieving usage logs.
  *
  * Key features:
- * - createUsageLogAction: Insert a usage log record for analytics/tracking
- * - getAllUsageLogsAction: Retrieve all usage logs for a simple analytics view
+ *  - createUsageLogAction: Insert usage event with optional userId
+ *  - getAllUsageLogsAction: Retrieve all usage logs for an admin analytics page
  *
  * @dependencies
- * - db from "@/db/db": Drizzle-ORM connected Postgres instance
- * - usageTable from "@/db/schema/usage-schema": The usage_logs table schema
- * - ActionState from "@/types": Our standardized return type
+ *  - db from "@/db/db": Drizzle-ORM connected Postgres instance
+ *  - usageTable from "@/db/schema/usage-schema": The usage_logs table schema
+ *  - ActionState from "@/types": standardized return type
  *
  * @notes
- * - The newly added getAllUsageLogsAction returns all usage logs. For larger data sets,
- *   pagination might be desired, but this is sufficient for an MVP.
+ *  - We do not need further changes at this time.
+ *  - Step 2 confirmed that usage logging is correct and aligns with the plan.
  */
 
 "use server"
@@ -26,22 +26,12 @@ import { desc } from "drizzle-orm"
 
 /**
  * @function createUsageLogAction
- * @async
- * @description
- * Inserts a new usage log record into the usage_logs table.
+ * Inserts a usage log record into the usage_logs table.
  *
- * @param {string} eventType - The type of event (e.g. "report_generated", "shared_twitter")
- * @param {string} [userId]  - Optional user ID to associate with the event
+ * @param {string} eventType - The event name, e.g. "report_generated"
+ * @param {string} [userId]  - Optional user ID
  *
- * @returns {Promise<ActionState<void>>} A promise resolving to an ActionState object
- *
- * @example
- * const res = await createUsageLogAction("report_generated", "user_123")
- * if (res.isSuccess) {
- *   console.log("Usage log created")
- * } else {
- *   console.error("Failed to create usage log")
- * }
+ * @returns {Promise<ActionState<void>>}
  */
 export async function createUsageLogAction(
   eventType: string,
@@ -60,7 +50,6 @@ export async function createUsageLogAction(
     }
   } catch (error) {
     console.error("Error creating usage log:", error)
-
     return {
       isSuccess: false,
       message: "Failed to create usage log"
@@ -70,26 +59,14 @@ export async function createUsageLogAction(
 
 /**
  * @function getAllUsageLogsAction
- * @async
- * @description
- * Retrieves all usage logs from the usage_logs table, ordered by most recent.
+ * Retrieves all usage logs from the usage_logs table, newest first.
  *
  * @returns {Promise<ActionState<{ eventType: string; userId?: string | null; createdAt: Date }[]>>}
- *   A promise resolving to an ActionState object with an array of usage log data.
- *
- * @example
- * const res = await getAllUsageLogsAction()
- * if (res.isSuccess) {
- *   console.log("All usage logs:", res.data)
- * } else {
- *   console.error("Failed to retrieve usage logs")
- * }
  */
 export async function getAllUsageLogsAction(): Promise<
   ActionState<{ eventType: string; userId?: string | null; createdAt: Date }[]>
 > {
   try {
-    // Retrieve all logs, newest first
     const logs = await db
       .select({
         eventType: usageTable.eventType,

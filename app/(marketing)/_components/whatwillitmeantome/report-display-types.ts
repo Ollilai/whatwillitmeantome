@@ -9,47 +9,22 @@ export interface MistralReportData {
   profession: string
 
   /**
-   * One-sentence summary of the AI's analysis
-   */
-  summary: string
-
-  /**
-   * Detailed analysis of how AI will impact the profession
-   */
-  impact: string
-
-  /**
-   * Opportunities that may arise from AI adoption
-   */
-  opportunities: string
-
-  /**
-   * Challenges that may arise from AI adoption
-   */
-  challenges: string
-
-  /**
-   * Recommended skills to develop
-   */
-  skills: string
-
-  /**
-   * Outlook for the profession in the next 5-10 years
+   * General outlook for the profession
    */
   outlook: string
 
   /**
-   * Potential benefits of AI in this profession
+   * Combined analysis of benefits and risks
    */
-  benefits: string
+  benefitsAndRisks: string
 
   /**
-   * Potential risks of AI in this profession
-   */
-  risks: string
-
-  /**
-   * Actionable steps to prepare for AI changes
+   * Actionable steps to adapt
    */
   steps: string
+
+  /**
+   * Short summary for social sharing
+   */
+  placard: string
 }

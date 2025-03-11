@@ -34,7 +34,7 @@ export default function Placard({
           <CardTitle>{profession}</CardTitle>
         </CardHeader>
         <CardContent>
-          <p>{data.summary}</p>
+          <p>{data.placard}</p>
         </CardContent>
       </Card>
     </div>
