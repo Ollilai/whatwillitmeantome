@@ -49,13 +49,6 @@ export default function Footer() {
           </Link>
 
           <Link
-            href="/terms-privacy"
-            className="text-foreground/70 hover:text-foreground transition"
-          >
-            Terms & Privacy
-          </Link>
-
-          <Link
             href="/contact"
             className="text-foreground/70 hover:text-foreground transition"
           >

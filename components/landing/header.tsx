@@ -37,7 +37,6 @@ const navLinks = [
     label: "Documentation",
     external: true
   },
-  { href: "/terms-privacy", label: "Terms & Privacy" },
   { href: "/contact", label: "Contact" }
 ]
 
