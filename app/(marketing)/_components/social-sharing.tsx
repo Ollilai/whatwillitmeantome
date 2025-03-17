@@ -174,15 +174,20 @@ export default function SocialSharing({
   }
 
   return (
-    <div className="flex flex-wrap items-center justify-center gap-3">
+    <div
+      className="flex flex-wrap items-center justify-center gap-3"
+      role="group"
+      aria-label="Share options"
+    >
       {/* Copy Text */}
       <Button
         variant="outline"
         size="sm"
         onClick={handleCopyText}
         className="bg-blue-50 hover:bg-blue-100 dark:bg-blue-900/30 dark:hover:bg-blue-900/50"
+        aria-label="Copy text to clipboard"
       >
-        <Copy className="mr-1 size-4" />
+        <Copy className="mr-1 size-4" aria-hidden="true" />
         Copy Text
       </Button>
 
@@ -193,8 +198,9 @@ export default function SocialSharing({
         onClick={handleDownloadImage}
         className="bg-purple-50 hover:bg-purple-100 dark:bg-purple-900/30 dark:hover:bg-purple-900/50"
         disabled={!elementRef?.current}
+        aria-label="Download as image"
       >
-        <Download className="mr-1 size-4" />
+        <Download className="mr-1 size-4" aria-hidden="true" />
         Download Image
       </Button>
 
@@ -205,8 +211,9 @@ export default function SocialSharing({
         onClick={() => handleShare("linkedin", shareLinks.linkedin)}
         disabled={isPending}
         className="bg-blue-50 hover:bg-blue-100 dark:bg-blue-900/30 dark:hover:bg-blue-900/50"
+        aria-label="Share on LinkedIn"
       >
-        <Linkedin className="mr-1 size-4" />
+        <Linkedin className="mr-1 size-4" aria-hidden="true" />
         LinkedIn
       </Button>
 
@@ -217,8 +224,9 @@ export default function SocialSharing({
         onClick={() => handleShare("reddit", shareLinks.reddit)}
         disabled={isPending}
         className="bg-orange-50 hover:bg-orange-100 dark:bg-orange-900/30 dark:hover:bg-orange-900/50"
+        aria-label="Share on Reddit"
       >
-        <Share2 className="mr-1 size-4" />
+        <Share2 className="mr-1 size-4" aria-hidden="true" />
         Reddit
       </Button>
     </div>

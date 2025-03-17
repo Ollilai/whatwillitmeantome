@@ -1,5 +1,5 @@
 /*
-This client component provides the hero section for the landing page.
+This client component provides the hero section for the What Will It Mean To Me landing page.
 */
 
 "use client"
@@ -12,7 +12,7 @@ import Link from "next/link"
 import AnimatedGradientText from "../magicui/animated-gradient-text"
 import HeroVideoDialog from "../magicui/hero-video-dialog"
 
-export const HeroSection = () => {
+export const HeroWhatWillItMeanToMe = () => {
   return (
     <div className="flex flex-col items-center justify-center px-8 pt-32 text-center">
       <motion.div
@@ -21,7 +21,7 @@ export const HeroSection = () => {
         transition={{ duration: 0.6, ease: "easeOut" }}
         className="flex items-center justify-center"
       >
-        <Link href="https://github.com/mckaywrigley/o1-pro-template-system">
+        <Link href="https://github.com/Ollilai/whatwillitmeantome">
           <AnimatedGradientText>
             🚀 <hr className="mx-2 h-4 w-px shrink-0 bg-gray-300" />
             <span
@@ -48,7 +48,7 @@ export const HeroSection = () => {
           transition={{ duration: 0.6, delay: 0.4, ease: "easeOut" }}
           className="text-balance text-6xl font-bold"
         >
-          Receipt AI
+          What Will It Mean To Me
         </motion.div>
 
         <motion.div
@@ -57,7 +57,7 @@ export const HeroSection = () => {
           transition={{ duration: 0.6, delay: 0.6, ease: "easeOut" }}
           className="max-w-xl text-balance text-xl"
         >
-          Transform receipts and invoices into organized data instantly with AI.
+          Understand the impact of AI and AGI on your career and future.
         </motion.div>
 
         <motion.div
@@ -65,7 +65,7 @@ export const HeroSection = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.8, ease: "easeOut" }}
         >
-          <Link href="https://github.com/mckaywrigley/o1-pro-template-system">
+          <Link href="/">
             <Button className="bg-blue-500 text-lg hover:bg-blue-600">
               <Rocket className="mr-2 size-5" />
               Get Started &rarr;
@@ -82,9 +82,9 @@ export const HeroSection = () => {
       >
         <HeroVideoDialog
           animationStyle="top-in-bottom-out"
-          videoSrc="https://www.youtube.com/embed/9yS0dR0kP-s"
+          videoSrc="https://www.youtube.com/embed/8V20HkoLIqI"
           thumbnailSrc="/hero.png"
-          thumbnailAlt="Hero Video"
+          thumbnailAlt="AI and the Future of Work"
         />
       </motion.div>
     </div>

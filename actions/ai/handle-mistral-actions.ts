@@ -24,40 +24,9 @@
 
 "use server"
 
-import { ActionState } from "@/types"
+import { ActionState, MistralResponse } from "@/types"
 import { createUsageLogAction } from "@/actions/db/usage-actions"
 import { Mistral } from "@mistralai/mistralai"
-
-/**
- * Describes the shape of data we want from Mistral: 
- * four sections plus the profession for clarity.
- */
-interface MistralResponse {
-  /**
-   * The profession under analysis
-   */
-  profession: string
-
-  /**
-   * The "General Outlook" section
-   */
-  outlook: string
-
-  /**
-   * The "Potential Benefits and Risks" section
-   */
-  benefitsAndRisks: string
-
-  /**
-   * The "Steps to Adapt" section
-   */
-  steps: string
-
-  /**
-   * The short summary, i.e. "Placard," a one-sentence statement
-   */
-  placard: string
-}
 
 /**
  * @function handleMistralAction

@@ -21,7 +21,7 @@
 
 "use server"
 
-import { ActionState } from "@/types"
+import { ActionState, MistralResponse } from "@/types"
 import { handleMistralAction } from "@/actions/ai/handle-mistral-actions"
 import { createUsageLogAction } from "@/actions/db/usage-actions"
 
@@ -43,7 +43,7 @@ export async function onSubmitAction(
   region: string,
   skillLevel: number,
   details?: string
-): Promise<ActionState<unknown>> {
+): Promise<ActionState<MistralResponse>> {
   return await handleMistralAction(
     profession,
     experience,

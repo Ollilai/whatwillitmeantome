@@ -48,6 +48,7 @@ import { Slider } from "@/components/ui/slider"
 import { Textarea } from "@/components/ui/textarea"
 import { onSubmitAction } from "@/app/(marketing)/actions-whatwillitmeantome"
 import type { ActionState } from "@/types"
+import type { MistralResponse } from "@/types/mistral-types"
 import Placard from "@/app/_components/placard"
 import SocialSharing from "@/app/(marketing)/_components/social-sharing"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -80,18 +81,6 @@ const formSchema = z.object({
 })
 
 type FormInputsType = z.infer<typeof formSchema>
-
-/**
- * @interface MistralResponse
- * The shape of data returned by handleMistralAction
- */
-interface MistralResponse {
-  profession: string
-  outlook: string
-  benefitsAndRisks: string
-  steps: string
-  placard: string
-}
 
 /**
  * @function HomeClient
@@ -143,8 +132,7 @@ export default function HomeClient() {
         }
 
         // If success, store the AI result in local state
-        const typedData = response.data as MistralResponse
-        setResult(typedData)
+        setResult(response.data)
 
         toast({
           title: "Success",

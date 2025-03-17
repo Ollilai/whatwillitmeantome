@@ -40,6 +40,8 @@ import { motion } from "framer-motion"
 interface PlacardProps {
   /**
    * The short, one-sentence summary returned by the AI analysis.
+   * This is typically the "placard" field from the MistralResponse.
+   * HTML formatting may be present and will be rendered.
    */
   summary: string
 }
@@ -56,7 +58,7 @@ function stripHtml(html: string): string {
  * A client component that renders a visually appealing card with a gradient header
  * that displays a key insight. Includes social sharing functionality.
  *
- * @param summary - The key insight text to display
+ * @param summary - The key insight text to display, may contain HTML formatting
  */
 export default function Placard({ summary }: PlacardProps) {
   // This ref is for the content that will be captured in the image download
@@ -79,27 +81,49 @@ export default function Placard({ summary }: PlacardProps) {
       <Card
         ref={downloadableContentRef}
         className="transform-gpu overflow-hidden border-2 border-blue-500/20 transition-all duration-300 hover:scale-[1.02] hover:shadow-xl dark:border-blue-500/30"
+        role="region"
+        aria-label="AI Analysis Key Insight"
       >
         <CardHeader className="bg-gradient-to-r from-blue-600 to-purple-600 p-4 text-white">
           <div className="flex items-center justify-between">
-            <h3 className="text-lg font-semibold">Key Insight</h3>
-            <div className="size-2 animate-pulse rounded-full bg-white/70"></div>
+            <h3 className="text-lg font-semibold" id="placard-heading">
+              Key Insight
+            </h3>
+            <div
+              className="size-2 animate-pulse rounded-full bg-white/70"
+              aria-hidden="true"
+            ></div>
           </div>
         </CardHeader>
 
         <CardContent className="relative p-6">
-          <div className="absolute left-0 top-0 size-24 -translate-x-1/2 -translate-y-1/2 rounded-full bg-gradient-to-br from-blue-400/20 to-purple-400/20 blur-xl"></div>
-          <div className="absolute bottom-0 right-0 size-32 translate-x-1/3 translate-y-1/3 rounded-full bg-gradient-to-tl from-purple-400/20 to-blue-400/20 blur-xl"></div>
+          <div
+            className="absolute left-0 top-0 size-24 -translate-x-1/2 -translate-y-1/2 rounded-full bg-gradient-to-br from-blue-400/20 to-purple-400/20 blur-xl"
+            aria-hidden="true"
+          ></div>
+          <div
+            className="absolute bottom-0 right-0 size-32 translate-x-1/3 translate-y-1/3 rounded-full bg-gradient-to-tl from-purple-400/20 to-blue-400/20 blur-xl"
+            aria-hidden="true"
+          ></div>
 
-          <blockquote className="relative z-10">
-            <span className="absolute -left-2 -top-4 text-4xl text-blue-300/50 dark:text-blue-500/30">
+          <blockquote
+            className="relative z-10"
+            aria-labelledby="placard-heading"
+          >
+            <span
+              className="absolute -left-2 -top-4 text-4xl text-blue-300/50 dark:text-blue-500/30"
+              aria-hidden="true"
+            >
               "
             </span>
             <p
               className="px-6 py-2 text-center text-lg font-medium"
               dangerouslySetInnerHTML={{ __html: displayText }}
             ></p>
-            <span className="absolute -bottom-8 -right-2 text-4xl text-blue-300/50 dark:text-blue-500/30">
+            <span
+              className="absolute -bottom-8 -right-2 text-4xl text-blue-300/50 dark:text-blue-500/30"
+              aria-hidden="true"
+            >
               "
             </span>
           </blockquote>
@@ -107,7 +131,10 @@ export default function Placard({ summary }: PlacardProps) {
       </Card>
 
       {/* Social Sharing Section - Separate from the downloadable content */}
-      <div className="mt-4">
+      <div className="mt-4" aria-labelledby="sharing-heading">
+        <h4 id="sharing-heading" className="sr-only">
+          Share this insight
+        </h4>
         <SocialSharing
           text={cleanText}
           url={
