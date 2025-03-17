@@ -9,11 +9,13 @@
  * - Handling a mobile menu with framer-motion
  *
  * Key features:
- * - Unified brand text "WhatWillItMeanToMe"
- * - Production-ready spacing, transitions, and hover states
+ * - Clean, modern, minimalistic design with bold typography
+ * - Refined gradient effect with subtle animation
+ * - Responsive layout with emphasis on the central question
+ * - Elegant hover and scroll interactions
  *
  * @dependencies
- * - framer-motion for mobile menu animation
+ * - framer-motion for animations
  * - lucide-react for icons
  *
  * @notes
@@ -23,14 +25,19 @@
 "use client"
 
 import { Button } from "@/components/ui/button"
-import { motion } from "framer-motion"
-import { Menu, Receipt, X } from "lucide-react"
+import { motion, Variants } from "framer-motion"
+import { Menu, X } from "lucide-react"
 import Link from "next/link"
 import { useEffect, useState } from "react"
 
 const navLinks = [
   { href: "/about", label: "About" },
-  { href: "/features", label: "Features" },
+  {
+    href: "https://github.com/Ollilai/whatwillitmeantome",
+    label: "Documentation",
+    external: true
+  },
+  { href: "/terms-privacy", label: "Terms & Privacy" },
   { href: "/contact", label: "Contact" }
 ]
 
@@ -64,70 +71,104 @@ export default function Header() {
     return () => window.removeEventListener("scroll", handleScroll)
   }, [])
 
+  // Text animation variants - simplified for a more modern look
+  const textVariants: Variants = {
+    initial: { opacity: 0.9 },
+    animate: {
+      opacity: 1,
+      transition: {
+        duration: 3,
+        repeat: Infinity,
+        repeatType: "reverse",
+        ease: "easeInOut"
+      }
+    },
+    hover: {
+      scale: 1.02,
+      transition: { duration: 0.3 }
+    }
+  }
+
   return (
     <header
-      className={`bg-background/95 sticky top-0 z-50 w-full border-b backdrop-blur transition-shadow ${
-        isScrolled ? "shadow-sm" : ""
+      className={`bg-background/95 sticky top-0 z-50 w-full backdrop-blur transition-all duration-300 ${
+        isScrolled ? "border-b shadow-sm" : "border-b border-transparent"
       }`}
     >
       <div className="container flex h-16 items-center justify-between px-4 md:px-6">
-        {/* Logo */}
-        <Link href="/" className="flex items-center gap-2">
-          <Receipt className="text-primary size-6" />
-          <span className="text-xl font-bold">WhatWillItMeanToMe</span>
-        </Link>
+        {/* Mobile menu toggle - Left side */}
+        <div className="md:hidden">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={toggleMenu}
+            aria-label="Toggle menu"
+            className="text-foreground/80 hover:text-foreground"
+          >
+            {isMenuOpen ? (
+              <X className="size-5" />
+            ) : (
+              <Menu className="size-5" />
+            )}
+          </Button>
+        </div>
 
-        {/* Desktop nav */}
-        <nav className="hidden md:flex md:items-center md:gap-6">
+        {/* Logo - Centered with refined styling */}
+        <div className="absolute left-1/2 flex -translate-x-1/2 items-center">
+          <Link href="/" className="flex items-center">
+            <motion.div
+              className="relative py-1"
+              initial="initial"
+              animate="animate"
+              whileHover="hover"
+              variants={textVariants}
+            >
+              <motion.span className="animate-gradient-x header-glow bg-gradient-to-r from-blue-600 via-purple-500 to-blue-600 bg-clip-text text-2xl font-black leading-none tracking-tight text-transparent sm:text-3xl">
+                What will it mean to me?
+              </motion.span>
+            </motion.div>
+          </Link>
+        </div>
+
+        {/* Desktop nav - Right side */}
+        <nav className="hidden md:flex md:items-center md:gap-8">
           {navLinks.map(link => (
             <Link
               key={link.href}
               href={link.href}
-              className="text-muted-foreground hover:text-foreground text-sm font-medium transition-colors"
+              className="text-foreground/70 hover:text-foreground text-sm font-medium decoration-blue-500/50 decoration-2 underline-offset-4 transition-colors hover:underline"
+              {...(link.external
+                ? { target: "_blank", rel: "noopener noreferrer" }
+                : {})}
             >
               {link.label}
             </Link>
           ))}
         </nav>
 
-        <div className="flex items-center space-x-4">
-          {/* Mobile menu toggle */}
-          <motion.div
-            className="md:hidden"
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-          >
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={toggleMenu}
-              aria-label="Toggle menu"
-            >
-              {isMenuOpen ? (
-                <X className="size-6" />
-              ) : (
-                <Menu className="size-6" />
-              )}
-            </Button>
-          </motion.div>
-        </div>
+        {/* Empty div to balance the layout on mobile */}
+        <div className="w-10 md:hidden"></div>
       </div>
 
-      {/* Mobile nav */}
+      {/* Mobile nav - Simplified and more elegant */}
       {isMenuOpen && (
         <motion.div
           className="container md:hidden"
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -10 }}
+          initial={{ opacity: 0, height: 0 }}
+          animate={{ opacity: 1, height: "auto" }}
+          exit={{ opacity: 0, height: 0 }}
+          transition={{ duration: 0.2 }}
         >
-          <div className="flex flex-col space-y-3 p-4">
+          <div className="bg-background/95 border-border/50 flex flex-col space-y-1 border-t px-1 py-3 backdrop-blur">
             {navLinks.map(link => (
               <Link
                 key={link.href}
                 href={link.href}
-                className="text-muted-foreground hover:text-foreground text-sm font-medium transition-colors"
+                className="text-foreground/70 hover:text-foreground rounded-md px-3 py-2 text-sm font-medium transition-colors hover:bg-blue-50 dark:hover:bg-blue-900/20"
                 onClick={() => setIsMenuOpen(false)}
+                {...(link.external
+                  ? { target: "_blank", rel: "noopener noreferrer" }
+                  : {})}
               >
                 {link.label}
               </Link>

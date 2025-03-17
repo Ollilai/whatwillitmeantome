@@ -5,135 +5,69 @@
  * This client component provides the footer for the marketing site.
  *
  * It is responsible for:
- * - Displaying site links (About, Blog, Careers, etc.)
- * - Displaying social links and a copyright
+ * - Displaying essential site links (About, Documentation, Terms & Privacy, Contact)
+ * - Displaying a copyright notice
  *
  * Key features:
- * - More professional spacing and link styling
- * - Removed references to Pricing
+ * - Clean, minimalistic design
+ * - Simplified navigation structure
+ * - Consistent with header navigation
  *
  * @dependencies
  * - React for the component
- * - Lucide-react for icons
  * - Link for next navigation
  *
  * @notes
- * - We maintain a typical four-column layout
- * - You can rename "Your Company" to your real brand name if you wish
+ * - Streamlined to only include essential links
+ * - About and Contact links match the header navigation
  */
 
 "use client"
 
-import { Github, Twitter } from "lucide-react"
 import Link from "next/link"
 
 export default function Footer() {
   return (
     <footer className="border-t">
-      <div className="container mx-auto max-w-7xl px-4 py-12 md:px-6">
-        {/* Footer columns */}
-        <div className="grid grid-cols-1 gap-8 md:grid-cols-4">
-          <div className="space-y-4">
-            <h3 className="text-lg font-bold">Company</h3>
+      <div className="container mx-auto max-w-7xl px-4 py-8 md:px-6">
+        {/* Footer links - simplified to a single row */}
+        <div className="flex flex-col items-center justify-center space-y-6 md:flex-row md:space-x-12 md:space-y-0">
+          <Link
+            href="/about"
+            className="text-foreground/70 hover:text-foreground transition"
+          >
+            About
+          </Link>
 
-            <div className="flex flex-col gap-2">
-              <Link
-                href="/about"
-                className="text-muted-foreground hover:text-foreground transition"
-              >
-                About
-              </Link>
+          <Link
+            href="https://github.com/Ollilai/whatwillitmeantome"
+            className="text-foreground/70 hover:text-foreground transition"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Documentation
+          </Link>
 
-              <Link
-                href="/blog"
-                className="text-muted-foreground hover:text-foreground transition"
-              >
-                Blog
-              </Link>
+          <Link
+            href="/terms-privacy"
+            className="text-foreground/70 hover:text-foreground transition"
+          >
+            Terms & Privacy
+          </Link>
 
-              <Link
-                href="/careers"
-                className="text-muted-foreground hover:text-foreground transition"
-              >
-                Careers
-              </Link>
-            </div>
-          </div>
-
-          <div className="space-y-4">
-            <h3 className="text-lg font-bold">Product</h3>
-
-            <div className="flex flex-col gap-2">
-              <Link
-                href="/features"
-                className="text-muted-foreground hover:text-foreground transition"
-              >
-                Features
-              </Link>
-
-              <Link
-                href="/docs"
-                className="text-muted-foreground hover:text-foreground transition"
-              >
-                Documentation
-              </Link>
-            </div>
-          </div>
-
-          <div className="space-y-4">
-            <h3 className="text-lg font-bold">Resources</h3>
-
-            <div className="flex flex-col gap-2">
-              <Link
-                href="/support"
-                className="text-muted-foreground hover:text-foreground transition"
-              >
-                Support
-              </Link>
-
-              <Link
-                href="/terms"
-                className="text-muted-foreground hover:text-foreground transition"
-              >
-                Terms
-              </Link>
-
-              <Link
-                href="/privacy"
-                className="text-muted-foreground hover:text-foreground transition"
-              >
-                Privacy
-              </Link>
-            </div>
-          </div>
-
-          <div className="space-y-4">
-            <h3 className="text-lg font-bold">Social</h3>
-
-            <div className="flex gap-4">
-              <Link
-                href="https://github.com"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                <Github className="text-muted-foreground hover:text-foreground size-6 transition" />
-              </Link>
-
-              <Link
-                href="https://twitter.com"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                <Twitter className="text-muted-foreground hover:text-foreground size-6 transition" />
-              </Link>
-            </div>
-          </div>
+          <Link
+            href="/contact"
+            className="text-foreground/70 hover:text-foreground transition"
+          >
+            Contact
+          </Link>
         </div>
 
         {/* Bottom row */}
-        <div className="text-muted-foreground mt-12 border-t pt-6 text-center">
+        <div className="text-foreground/60 mt-8 pt-6 text-center text-sm">
           <p>
-            &copy; {new Date().getFullYear()} Your Company. All rights reserved.
+            &copy; {new Date().getFullYear()} What Will It Mean To Me. All
+            rights reserved.
           </p>
         </div>
       </div>

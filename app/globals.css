@@ -111,4 +111,55 @@
   body {
     @apply bg-background text-foreground;
   }
+  
+  /* Ensure slider thumb is visible */
+  [data-radix-slider-thumb] {
+    @apply block h-5 w-5 rounded-full border-2 border-primary bg-background shadow-md;
+    @apply hover:border-blue-600 hover:bg-blue-50;
+    @apply focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2;
+    @apply dark:bg-gray-800 dark:border-blue-400 dark:hover:bg-gray-700;
+  }
+}
+
+/* Custom animations for the Placard component */
+@layer utilities {
+  .perspective-1000 {
+    perspective: 1000px;
+  }
+  
+  .transform-gpu {
+    transform: translate3d(0, 0, 0);
+    backface-visibility: hidden;
+  }
+  
+  @keyframes gradient-x {
+    0% {
+      background-position: 0% 50%;
+    }
+    50% {
+      background-position: 100% 50%;
+    }
+    100% {
+      background-position: 0% 50%;
+    }
+  }
+  
+  .animate-gradient-x {
+    animation: gradient-x 15s ease infinite;
+    background-size: 200% 200%;
+  }
+  
+  /* Updated header text glow effect - more subtle and modern */
+  .header-glow {
+    text-shadow: 0 0 1px rgba(79, 70, 229, 0.1);
+  }
+  
+  @keyframes pulse-glow {
+    0% {
+      text-shadow: 0 0 1px rgba(79, 70, 229, 0.1);
+    }
+    100% {
+      text-shadow: 0 0 2px rgba(124, 58, 237, 0.2);
+    }
+  }
 }

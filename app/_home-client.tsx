@@ -50,6 +50,8 @@ import { onSubmitAction } from "@/app/(marketing)/actions-whatwillitmeantome"
 import type { ActionState } from "@/types"
 import Placard from "@/app/_components/placard"
 import SocialSharing from "@/app/(marketing)/_components/social-sharing"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { motion } from "framer-motion"
 
 /**
  * Form schema using zod
@@ -168,102 +170,116 @@ export default function HomeClient() {
        * FORM SECTION
        */}
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-          {/* Profession */}
-          <FormField
-            control={form.control}
-            name="profession"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Profession / Job Title</FormLabel>
-                <FormControl>
-                  <Input
-                    placeholder="e.g. Software Engineer"
-                    {...field}
-                    autoComplete="off"
-                  />
-                </FormControl>
-                <FormDescription>
-                  Enter your current or desired profession
-                </FormDescription>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+        <form
+          onSubmit={form.handleSubmit(onSubmit)}
+          className="bg-card mx-auto max-w-2xl space-y-6 rounded-lg border p-6 shadow-sm"
+        >
+          <div className="mb-6 text-center">
+            <h2 className="text-2xl font-bold">Analyze Your Career</h2>
+            <p className="text-muted-foreground mt-2">
+              Discover how AI might impact your profession in the future
+            </p>
+          </div>
 
-          {/* Experience */}
-          <FormField
-            control={form.control}
-            name="experience"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Years of Experience</FormLabel>
-                <FormControl>
-                  <Input
-                    type="number"
-                    min={0}
-                    max={50}
-                    placeholder="e.g. 5"
-                    {...field}
-                    onChange={e => field.onChange(Number(e.target.value))}
-                  />
-                </FormControl>
-                <FormDescription>
-                  How many years have you worked in this field?
-                </FormDescription>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+          <div className="grid gap-6 md:grid-cols-2">
+            <FormField
+              control={form.control}
+              name="profession"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Profession</FormLabel>
+                  <FormControl>
+                    <input
+                      placeholder="e.g. Software Engineer"
+                      className="border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring flex h-10 w-full rounded-md border px-3 py-2 text-sm file:border-0 file:bg-transparent file:text-sm file:font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormDescription>
+                    Your current job title or role
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-          {/* Region */}
+            <FormField
+              control={form.control}
+              name="experience"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Years of Experience</FormLabel>
+                  <FormControl>
+                    <input
+                      type="number"
+                      min="0"
+                      max="50"
+                      className="border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring flex h-10 w-full rounded-md border px-3 py-2 text-sm file:border-0 file:bg-transparent file:text-sm file:font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                      {...field}
+                      onChange={e => field.onChange(Number(e.target.value))}
+                    />
+                  </FormControl>
+                  <FormDescription>
+                    How long you've been in this field
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+
           <FormField
             control={form.control}
             name="region"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Geographic Region</FormLabel>
+                <FormLabel>Region</FormLabel>
                 <FormControl>
-                  <Input placeholder="e.g. United States" {...field} />
+                  <input
+                    placeholder="e.g. United States, Europe, Asia"
+                    className="border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring flex h-10 w-full rounded-md border px-3 py-2 text-sm file:border-0 file:bg-transparent file:text-sm file:font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                    {...field}
+                  />
                 </FormControl>
-                <FormDescription>
-                  Where are you located or planning to work?
-                </FormDescription>
+                <FormDescription>Your geographic location</FormDescription>
                 <FormMessage />
               </FormItem>
             )}
           />
 
-          {/* Skill Level */}
           <FormField
             control={form.control}
             name="skillLevel"
-            render={({ field }) => (
+            render={({ field: { value, onChange, ...fieldProps } }) => (
               <FormItem>
-                <FormLabel>Technical Skill Level (1-10)</FormLabel>
+                <FormLabel>Technological Skill Level (1-10)</FormLabel>
                 <FormControl>
                   <div className="space-y-2">
+                    <div className="text-muted-foreground flex justify-between text-xs">
+                      <span>Beginner</span>
+                      <span>Intermediate</span>
+                      <span>Expert</span>
+                    </div>
                     <Slider
                       min={1}
                       max={10}
                       step={1}
-                      defaultValue={[field.value]}
-                      onValueChange={value => field.onChange(value[0])}
+                      value={[value]}
+                      onValueChange={vals => onChange(vals[0])}
+                      className="py-2"
+                      {...fieldProps}
                     />
-                    <div className="text-center font-medium">
-                      {field.value}/10
-                    </div>
+                    <div className="text-center font-medium">{value}</div>
                   </div>
                 </FormControl>
                 <FormDescription>
-                  How would you rate your technical skill?
+                  How would you rate your technological skills?
                 </FormDescription>
                 <FormMessage />
               </FormItem>
             )}
           />
 
-          {/* Additional details */}
           <FormField
             control={form.control}
             name="details"
@@ -273,6 +289,7 @@ export default function HomeClient() {
                 <FormControl>
                   <Textarea
                     placeholder="Any extra info about your career goals..."
+                    className="min-h-[100px] resize-none"
                     {...field}
                   />
                 </FormControl>
@@ -290,7 +307,33 @@ export default function HomeClient() {
             disabled={isAnalyzing || isPending}
             className="w-full"
           >
-            {isAnalyzing || isPending ? "Analyzing..." : "Analyze My Career"}
+            {isAnalyzing || isPending ? (
+              <div className="flex items-center">
+                <svg
+                  className="-ml-1 mr-3 size-5 animate-spin text-white"
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                >
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                  ></circle>
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                  ></path>
+                </svg>
+                Analyzing your career...
+              </div>
+            ) : (
+              "Analyze My Career"
+            )}
           </Button>
         </form>
       </Form>
@@ -300,55 +343,172 @@ export default function HomeClient() {
        */}
       {result && (
         <div className="space-y-6 text-center">
-          <h2 className="text-xl font-semibold">
+          <motion.h2
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-2xl font-bold text-transparent"
+          >
             Analysis Results for {result.profession}
-          </h2>
+          </motion.h2>
 
           {/**
-           * Display the analysis in a grid
+           * Display the analysis in an animated, tabbed interface
            */}
-          <div className="grid gap-6 md:grid-cols-2">
-            {/* Outlook */}
-            <div className="bg-card mx-auto w-full rounded-lg border p-5 text-left shadow-sm">
-              <h3 className="text-primary mb-3 text-lg font-semibold">
-                General Outlook
-              </h3>
-              <div
-                className="text-foreground text-sm leading-relaxed"
-                dangerouslySetInnerHTML={{ __html: result.outlook }}
-              />
-            </div>
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.2 }}
+            className="mx-auto max-w-4xl"
+          >
+            <Tabs defaultValue="outlook" className="w-full">
+              <TabsList className="mb-8 grid w-full grid-cols-3">
+                <TabsTrigger value="outlook">General Outlook</TabsTrigger>
+                <TabsTrigger value="benefits">Benefits & Risks</TabsTrigger>
+                <TabsTrigger value="steps">Steps to Adapt</TabsTrigger>
+              </TabsList>
 
-            {/* Steps to Adapt */}
-            <div className="bg-card mx-auto w-full rounded-lg border p-5 text-left shadow-sm">
-              <h3 className="text-primary mb-3 text-lg font-semibold">
-                Steps to Adapt
-              </h3>
-              <div
-                className="text-foreground text-sm leading-relaxed"
-                dangerouslySetInnerHTML={{ __html: result.steps }}
-              />
-            </div>
+              <TabsContent value="outlook">
+                <motion.div
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  className="bg-card relative overflow-hidden rounded-xl border p-6 text-left shadow-md"
+                >
+                  <div className="absolute left-0 top-0 h-1 w-full bg-gradient-to-r from-blue-500 to-blue-700" />
+                  <h3 className="text-primary mb-4 flex items-center text-xl font-semibold">
+                    <span className="mr-3 rounded-full bg-blue-100 p-2 text-blue-700 dark:bg-blue-900 dark:text-blue-300">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="20"
+                        height="20"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        className="lucide lucide-eye"
+                      >
+                        <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z" />
+                        <circle cx="12" cy="12" r="3" />
+                      </svg>
+                    </span>
+                    General Outlook
+                  </h3>
+                  <div
+                    className="text-foreground text-base leading-relaxed"
+                    dangerouslySetInnerHTML={{ __html: result.outlook }}
+                  />
+                </motion.div>
+              </TabsContent>
 
-            {/* Benefits & Risks - Now spans full width */}
-            <div className="bg-card mx-auto w-full rounded-lg border p-5 text-left shadow-sm md:col-span-2">
-              <h3 className="text-primary mb-3 text-lg font-semibold">
-                Potential Benefits &amp; Risks
-              </h3>
-              <div
-                className="text-foreground text-sm leading-relaxed"
-                dangerouslySetInnerHTML={{ __html: result.benefitsAndRisks }}
-              />
-            </div>
-          </div>
+              <TabsContent value="benefits">
+                <motion.div
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  className="bg-card relative overflow-hidden rounded-xl border p-6 text-left shadow-md"
+                >
+                  <div className="absolute left-0 top-0 h-1 w-full bg-gradient-to-r from-purple-500 to-purple-700" />
+                  <h3 className="text-primary mb-4 flex items-center text-xl font-semibold">
+                    <span className="mr-3 rounded-full bg-purple-100 p-2 text-purple-700 dark:bg-purple-900 dark:text-purple-300">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="20"
+                        height="20"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        className="lucide lucide-scale"
+                      >
+                        <path d="m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z" />
+                        <path d="m2 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z" />
+                        <path d="M7 21h10" />
+                        <path d="M12 3v18" />
+                        <path d="M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2" />
+                      </svg>
+                    </span>
+                    Potential Benefits &amp; Risks
+                  </h3>
+                  <div
+                    className="text-foreground text-base leading-relaxed"
+                    dangerouslySetInnerHTML={{
+                      __html: result.benefitsAndRisks
+                    }}
+                  />
+                </motion.div>
+              </TabsContent>
+
+              <TabsContent value="steps">
+                <motion.div
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  className="bg-card relative overflow-hidden rounded-xl border p-6 text-left shadow-md"
+                >
+                  <div className="absolute left-0 top-0 h-1 w-full bg-gradient-to-r from-green-500 to-green-700" />
+                  <h3 className="text-primary mb-4 flex items-center text-xl font-semibold">
+                    <span className="mr-3 rounded-full bg-green-100 p-2 text-green-700 dark:bg-green-900 dark:text-green-300">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="20"
+                        height="20"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        className="lucide lucide-route"
+                      >
+                        <circle cx="6" cy="19" r="3" />
+                        <path d="M9 19h8.5a3.5 3.5 0 0 0 0-7h-11a3.5 3.5 0 0 1 0-7H15" />
+                        <circle cx="18" cy="5" r="3" />
+                      </svg>
+                    </span>
+                    Steps to Adapt
+                  </h3>
+                  <div
+                    className="text-foreground text-base leading-relaxed"
+                    dangerouslySetInnerHTML={{ __html: result.steps }}
+                  />
+                </motion.div>
+              </TabsContent>
+            </Tabs>
+          </motion.div>
 
           {/**
            * Show the AI's short summary in a placard - Now moved below the analysis
            */}
-          <div className="mx-auto mt-8 max-w-2xl">
-            <h3 className="mb-4 text-lg font-medium">Key Takeaway</h3>
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.4 }}
+            className="mx-auto mt-12 max-w-2xl"
+          >
+            <h3 className="mb-4 flex items-center justify-center text-xl font-medium">
+              <span className="mr-2 rounded-full bg-pink-100 p-2 text-pink-700 dark:bg-pink-900 dark:text-pink-300">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className="lucide lucide-lightbulb"
+                >
+                  <path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5" />
+                  <path d="M9 18h6" />
+                  <path d="M10 22h4" />
+                </svg>
+              </span>
+              Key Takeaway
+            </h3>
             <Placard summary={result.placard} />
-          </div>
+          </motion.div>
         </div>
       )}
     </div>
