@@ -6,33 +6,23 @@
  *
  * It is responsible for:
  * - Displaying site navigation links
- * - Showing sign-in/sign-up or user-button states based on auth
  * - Handling a mobile menu with framer-motion
  *
  * Key features:
- * - Unified brand text changed to "WhatWillItMeanToMe"
+ * - Unified brand text "WhatWillItMeanToMe"
  * - Production-ready spacing, transitions, and hover states
  *
  * @dependencies
- * - Clerk (SignedIn, SignedOut, SignInButton, SignUpButton, UserButton)
  * - framer-motion for mobile menu animation
  * - lucide-react for icons
  *
  * @notes
- * - We removed references to "Receipt AI"
- * - All other references remain
+ * - Authentication has been removed as it's not needed for this project
  */
 
 "use client"
 
 import { Button } from "@/components/ui/button"
-import {
-  SignedIn,
-  SignedOut,
-  SignInButton,
-  SignUpButton,
-  UserButton
-} from "@clerk/nextjs"
 import { motion } from "framer-motion"
 import { Menu, Receipt, X } from "lucide-react"
 import Link from "next/link"
@@ -44,19 +34,30 @@ const navLinks = [
   { href: "/contact", label: "Contact" }
 ]
 
-const signedInLinks = [{ href: "/dashboard", label: "Dashboard" }]
-
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [isScrolled, setIsScrolled] = useState(false)
 
-  const toggleMenu = () => {
-    setIsMenuOpen(!isMenuOpen)
-  }
+  // Toggle mobile menu
+  const toggleMenu = () => setIsMenuOpen(!isMenuOpen)
 
+  // Close mobile menu on route change
+  useEffect(() => {
+    const handleRouteChange = () => {
+      setIsMenuOpen(false)
+    }
+
+    window.addEventListener("popstate", handleRouteChange)
+
+    return () => {
+      window.removeEventListener("popstate", handleRouteChange)
+    }
+  }, [])
+
+  // Add shadow on scroll
   useEffect(() => {
     const handleScroll = () => {
-      setIsScrolled(window.scrollY > 0)
+      setIsScrolled(window.scrollY > 10)
     }
 
     window.addEventListener("scroll", handleScroll)
@@ -64,92 +65,32 @@ export default function Header() {
   }, [])
 
   return (
-    <motion.header
-      initial={{ y: -20, opacity: 0 }}
-      animate={{ y: 0, opacity: 1 }}
-      className={`sticky top-0 z-50 transition-colors ${
-        isScrolled
-          ? "bg-background/80 shadow-sm backdrop-blur-sm"
-          : "bg-background"
+    <header
+      className={`bg-background/95 sticky top-0 z-50 w-full border-b backdrop-blur transition-shadow ${
+        isScrolled ? "shadow-sm" : ""
       }`}
     >
-      <div className="container mx-auto flex max-w-7xl items-center justify-between p-4">
-        {/* Brand block with updated name */}
-        <motion.div
-          className="flex items-center space-x-2 hover:cursor-pointer hover:opacity-80"
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-        >
-          {/* Optional brand icon or placeholder */}
-          <Receipt className="size-6" />
-
-          {/* Updated brand name */}
-          <Link href="/" className="text-xl font-bold">
-            WhatWillItMeanToMe
-          </Link>
-        </motion.div>
+      <div className="container flex h-16 items-center justify-between px-4 md:px-6">
+        {/* Logo */}
+        <Link href="/" className="flex items-center gap-2">
+          <Receipt className="text-primary size-6" />
+          <span className="text-xl font-bold">WhatWillItMeanToMe</span>
+        </Link>
 
         {/* Desktop nav */}
-        <nav className="absolute left-1/2 hidden -translate-x-1/2 space-x-2 md:flex">
+        <nav className="hidden md:flex md:items-center md:gap-6">
           {navLinks.map(link => (
-            <motion.div
+            <Link
               key={link.href}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
+              href={link.href}
+              className="text-muted-foreground hover:text-foreground text-sm font-medium transition-colors"
             >
-              <Link
-                href={link.href}
-                className="text-muted-foreground hover:text-foreground rounded-full px-3 py-1 transition"
-              >
-                {link.label}
-              </Link>
-            </motion.div>
+              {link.label}
+            </Link>
           ))}
-
-          <SignedIn>
-            {signedInLinks.map(link => (
-              <motion.div
-                key={link.href}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-              >
-                <Link
-                  href={link.href}
-                  className="text-muted-foreground hover:text-foreground rounded-full px-3 py-1 transition"
-                >
-                  {link.label}
-                </Link>
-              </motion.div>
-            ))}
-          </SignedIn>
         </nav>
 
-        {/* Right side - sign in/up or user button */}
         <div className="flex items-center space-x-4">
-          <SignedOut>
-            <SignInButton>
-              <motion.div
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-              >
-                <Button variant="ghost">Sign In</Button>
-              </motion.div>
-            </SignInButton>
-
-            <SignUpButton>
-              <motion.div
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-              >
-                <Button>Get Started</Button>
-              </motion.div>
-            </SignUpButton>
-          </SignedOut>
-
-          <SignedIn>
-            <UserButton />
-          </SignedIn>
-
           {/* Mobile menu toggle */}
           <motion.div
             className="md:hidden"
@@ -174,51 +115,26 @@ export default function Header() {
 
       {/* Mobile nav */}
       {isMenuOpen && (
-        <motion.nav
+        <motion.div
+          className="container md:hidden"
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -10 }}
-          className="bg-primary-foreground text-primary p-4 md:hidden"
         >
-          <ul className="space-y-2">
-            <li>
-              <Link
-                href="/"
-                className="block hover:underline"
-                onClick={toggleMenu}
-              >
-                Home
-              </Link>
-            </li>
-
+          <div className="flex flex-col space-y-3 p-4">
             {navLinks.map(link => (
-              <li key={link.href}>
-                <Link
-                  href={link.href}
-                  className="block hover:underline"
-                  onClick={toggleMenu}
-                >
-                  {link.label}
-                </Link>
-              </li>
+              <Link
+                key={link.href}
+                href={link.href}
+                className="text-muted-foreground hover:text-foreground text-sm font-medium transition-colors"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                {link.label}
+              </Link>
             ))}
-
-            <SignedIn>
-              {signedInLinks.map(link => (
-                <li key={link.href}>
-                  <Link
-                    href={link.href}
-                    className="block hover:underline"
-                    onClick={toggleMenu}
-                  >
-                    {link.label}
-                  </Link>
-                </li>
-              ))}
-            </SignedIn>
-          </ul>
-        </motion.nav>
+          </div>
+        </motion.div>
       )}
-    </motion.header>
+    </header>
   )
 }

@@ -10,16 +10,13 @@
  * Key Features:
  * - The onSubmitAction calls handleMistralAction to get AI insights
  * - The onShareAction logs a usage event (shared_{network}) in the usage_logs table
- * - Optionally includes the userId if the user is logged in
  *
  * @dependencies
  * - handleMistralAction from "@/actions/ai/handle-mistral-actions"
  * - createUsageLogAction from "@/actions/db/usage-actions"
- * - auth from "@clerk/nextjs/server" to get userId
  *
  * @notes
- * - The social sharing logs are now stored in usage_logs
- * - We embed userId if available
+ * - Authentication has been removed as it's not needed for this project
  */
 
 "use server"
@@ -27,7 +24,6 @@
 import { ActionState } from "@/types"
 import { handleMistralAction } from "@/actions/ai/handle-mistral-actions"
 import { createUsageLogAction } from "@/actions/db/usage-actions"
-import { auth } from "@clerk/nextjs/server"
 
 /**
  * @function onSubmitAction
@@ -66,21 +62,17 @@ export async function onSubmitAction(
  * @returns Success or error state
  *
  * @notes
- * - We optionally attach the userId if the user is logged in
- * - This helps track how many times users share their results
+ * - User ID is no longer tracked as authentication has been removed
  */
 export async function onShareAction(
   network: string
 ): Promise<ActionState<void>> {
   try {
-    // Use Clerk to see if there's a user session
-    const { userId } = await auth()
-
     // Create a usage log event such as "shared_twitter"
     const eventType = `shared_${network}`
 
-    // Log with optional userId
-    const result = await createUsageLogAction(eventType, userId || undefined)
+    // Log the share event without user ID
+    const result = await createUsageLogAction(eventType)
 
     return result
   } catch (error) {
