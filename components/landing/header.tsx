@@ -36,8 +36,7 @@ const navLinks = [
     href: "https://github.com/Ollilai/whatwillitmeantome",
     label: "Documentation",
     external: true
-  },
-  { href: "/contact", label: "Contact" }
+  }
 ]
 
 export default function Header() {

@@ -5,7 +5,7 @@
  * This client component provides the footer for the marketing site.
  *
  * It is responsible for:
- * - Displaying essential site links (About, Documentation, Terms & Privacy, Contact)
+ * - Displaying essential site links (About, Documentation, Terms & Privacy)
  * - Displaying a copyright notice
  *
  * Key features:
@@ -19,7 +19,7 @@
  *
  * @notes
  * - Streamlined to only include essential links
- * - About and Contact links match the header navigation
+ * - About link matches the header navigation
  */
 
 "use client"
@@ -46,13 +46,6 @@ export default function Footer() {
             rel="noopener noreferrer"
           >
             Documentation
-          </Link>
-
-          <Link
-            href="/contact"
-            className="text-foreground/70 hover:text-foreground transition"
-          >
-            Contact
           </Link>
         </div>
 
