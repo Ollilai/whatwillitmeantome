@@ -73,4 +73,4 @@ To run this project, you'll need:
 
 ### Security Notice
 
-⚠️ **Important**: Never commit sensitive credentials to Git! See our [Security Policy](SECURITY.md) for more information on handling credentials securely.
+⚠️ **Important**: Never commit sensitive credentials to Git! Your `.env.local` file should be in your `.gitignore`.
