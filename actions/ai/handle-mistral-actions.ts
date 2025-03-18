@@ -60,6 +60,8 @@ export async function handleMistralAction(
   details?: string
 ): Promise<ActionState<MistralResponse>> {
   try {
+    console.log("🔍 Starting handleMistralAction with:", { profession, experience, region, skillLevel });
+    
     // Validate inputs
     if (!profession) {
       return { isSuccess: false, message: "Profession is required." }
@@ -81,9 +83,11 @@ export async function handleMistralAction(
     }
 
     // Check for Mistral API key
-    const mistralApiKey = process.env.MISTRAL_API_KEY
+    const mistralApiKey = process.env.MISTRAL_API_KEY;
+    console.log("🔑 Mistral API key exists:", !!mistralApiKey);
+    
     if (!mistralApiKey) {
-      console.error("Mistral API key not found in environment variables.")
+      console.error("❌ Mistral API key not found in environment variables.");
       return {
         isSuccess: false,
         message: "API configuration error. Please contact support."
@@ -129,107 +133,147 @@ Additional details: ${details || "(none)"}
 
     // Log usage event if desired
     try {
-      await createUsageLogAction("mistral-analysis", "system")
+      console.log("📝 Attempting to log usage event");
+      await createUsageLogAction("mistral-analysis", "system");
+      console.log("✅ Usage event logged successfully");
     } catch (logError) {
-      console.warn("Usage logging is not critical; continuing anyway:", logError)
+      console.warn("⚠️ Usage logging failed, but continuing:", logError);
     }
 
     // Create Mistral client and request
-    const client = new Mistral({ apiKey: mistralApiKey })
-    const response = await client.chat.complete({
-      model: "mistral-large-latest",
-      messages: [{ role: "system", content: systemPrompt }]
-    })
+    console.log("🤖 Creating Mistral client");
+    const client = new Mistral({ apiKey: mistralApiKey });
+    console.log("🚀 Making API request to Mistral");
 
-    if (!response?.choices?.[0]?.message?.content) {
-      console.error("Empty or invalid Mistral response.")
-      return { isSuccess: false, message: "Failed to get a valid AI response." }
-    }
+    const TIMEOUT_MS = 25000; // 25 seconds timeout (Vercel serverless functions have 30s limit)
 
-    const raw = response.choices[0].message.content.toString()
-    console.log("Mistral raw output:", raw)
-
-    // Parse the 4 labeled sections from Mistral's response
     try {
-      // First, clean up the raw text by removing any ### markers and normalizing line endings
-      const cleanedRaw = raw.replace(/###\s*/g, "").replace(/\r\n/g, "\n");
+      // Create a promise that will reject after the timeout
+      const timeoutPromise = new Promise((_, reject) => {
+        setTimeout(() => {
+          reject(new Error("Request to Mistral API timed out after " + TIMEOUT_MS + "ms"));
+        }, TIMEOUT_MS);
+      });
       
-      // Split the text into sections based on numbered section headers
-      const sections = [
-        { name: "General Outlook", content: "" },
-        { name: "Potential Benefits and Risks", content: "" },
-        { name: "Steps to Adapt", content: "" },
-        { name: "Placard", content: "" }
-      ];
+      // Race the API call against the timeout
+      const response = await Promise.race([
+        client.chat.complete({
+          model: "mistral-large-latest",
+          messages: [{ role: "system", content: systemPrompt }]
+        }),
+        timeoutPromise
+      ]) as any; // TypeScript needs a cast here
       
-      // Use a more robust approach to extract sections
-      let currentSection = -1;
+      console.log("✅ Received response from Mistral API");
       
-      // First, identify all section boundaries
-      const sectionMatches = Array.from(
-        cleanedRaw.matchAll(/\d+\)\s*(General Outlook|Potential Benefits and Risks|Steps to Adapt|Placard)\s*:/gi)
-      );
-      
-      // If we found section markers, extract content between them
-      if (sectionMatches.length > 0) {
-        for (let i = 0; i < sectionMatches.length; i++) {
-          const match = sectionMatches[i];
-          const sectionName = match[1];
-          const startPos = match.index! + match[0].length;
-          const endPos = i < sectionMatches.length - 1 ? sectionMatches[i + 1].index : cleanedRaw.length;
+      if (!response?.choices?.[0]?.message?.content) {
+        console.error("❌ Empty or invalid Mistral response:", response);
+        return { isSuccess: false, message: "Failed to get a valid AI response." }
+      }
+
+      const raw = response.choices[0].message.content.toString();
+      console.log("📄 Raw Mistral output received, length:", raw.length);
+
+      // Parse the 4 labeled sections from Mistral's response
+      try {
+        console.log("🔍 Parsing response sections");
+        // First, clean up the raw text by removing any ### markers and normalizing line endings
+        const cleanedRaw = raw.replace(/###\s*/g, "").replace(/\r\n/g, "\n");
+        
+        // Split by lines to handle the content line by line
+        const lines = cleanedRaw.split('\n');
+        let allSections: Record<string, string> = {};
+        
+        // Use a more robust approach to extract sections with multiple patterns
+        let currentSection: string | null = null;
+        
+        for (let i = 0; i < lines.length; i++) {
+          const line = lines[i].trim();
           
-          // Find the section index
-          const sectionIndex = sections.findIndex(s => 
-            s.name.toLowerCase() === sectionName.toLowerCase()
-          );
+          // Check for different section header formats
+          // Format 1: "1) General Outlook:"
+          // Format 2: "General Outlook:"
+          // Format 3: "1. General Outlook:"
+          const headerMatch = 
+            line.match(/^(?:\d+[\.\)]\s*)?(?:(General Outlook|Potential Benefits and Risks|Steps to Adapt|Placard)\s*:)/i);
           
-          if (sectionIndex !== -1) {
-            sections[sectionIndex].content = cleanedRaw.substring(startPos, endPos).trim();
+          if (headerMatch) {
+            currentSection = headerMatch[1].replace(/\s+/g, ' ').trim();
+            // Initialize or reset the section content
+            allSections[currentSection.toLowerCase()] = "";
+            continue; // Skip the header line
+          }
+          
+          // If we're inside a section, append this line to its content
+          if (currentSection) {
+            allSections[currentSection.toLowerCase()] = 
+              (allSections[currentSection.toLowerCase()] || "") + line + "\n";
           }
         }
-      } else {
-        // Fallback to simpler regex if numbered sections aren't found
-        for (const section of sections) {
-          const regex = new RegExp(`${section.name}\\s*:([\\s\\S]*?)(?=(?:${sections.map(s => s.name).join('|')})\\s*:|$)`, 'i');
-          const match = cleanedRaw.match(regex);
-          if (match) {
-            section.content = match[1].trim();
+        
+        // Map the collected sections to our expected structure
+        const sections = [
+          { name: "General Outlook", content: "" },
+          { name: "Potential Benefits and Risks", content: "" },
+          { name: "Steps to Adapt", content: "" },
+          { name: "Placard", content: "" }
+        ];
+        
+        sections.forEach((section) => {
+          const key = section.name.toLowerCase();
+          if (allSections[key]) {
+            section.content = allSections[key].trim();
           }
+        });
+        
+        // Apply cleanText to each section
+        const outlook = cleanText(sections[0].content);
+        const benefitsAndRisks = cleanText(sections[1].content);
+        const steps = cleanText(sections[2].content);
+        const placard = cleanText(sections[3].content);
+
+        // Build final typed object
+        const result: MistralResponse = {
+          profession,
+          outlook: outlook || "No general outlook found.",
+          benefitsAndRisks:
+            benefitsAndRisks || "No benefits and risks analysis found.",
+          steps: steps || "No steps found.",
+          placard: placard || "No placard summary found."
+        }
+
+        console.log("Parsed MistralResponse:", result)
+
+        return {
+          isSuccess: true,
+          message: "Analysis completed successfully",
+          data: result
+        }
+      } catch (parseError) {
+        console.error("Error parsing Mistral output:", parseError)
+        return {
+          isSuccess: false,
+          message: "Failed to parse structured AI output. Try again later."
         }
       }
-      
-      // Apply cleanText to each section
-      const outlook = cleanText(sections[0].content);
-      const benefitsAndRisks = cleanText(sections[1].content);
-      const steps = cleanText(sections[2].content);
-      const placard = cleanText(sections[3].content);
-
-      // Build final typed object
-      const result: MistralResponse = {
-        profession,
-        outlook: outlook || "No general outlook found.",
-        benefitsAndRisks:
-          benefitsAndRisks || "No benefits and risks analysis found.",
-        steps: steps || "No steps found.",
-        placard: placard || "No placard summary found."
-      }
-
-      console.log("Parsed MistralResponse:", result)
-
-      return {
-        isSuccess: true,
-        message: "Analysis completed successfully",
-        data: result
-      }
-    } catch (parseError) {
-      console.error("Error parsing Mistral output:", parseError)
+    } catch (apiError) {
+      console.error("Error in Mistral API request:", apiError)
       return {
         isSuccess: false,
-        message: "Failed to parse structured AI output. Try again later."
+        message: "An error occurred while communicating with Mistral. Please try again later."
       }
     }
   } catch (error) {
-    console.error("Unhandled error in handleMistralAction:", error)
+    console.error("❌ Unhandled error in handleMistralAction:", error);
+    // Enhanced error reporting
+    if (error instanceof Error) {
+      console.error("Error message:", error.message);
+      console.error("Error stack:", error.stack);
+      if ('cause' in error) {
+        console.error("Error cause:", error.cause);
+      }
+    }
+    
     return {
       isSuccess: false,
       message: "An unexpected error occurred. Please try again later."
