@@ -185,7 +185,7 @@ Additional details: ${details || "(none)"}
         let allSections: Record<string, string> = {};
         
         // Use a more robust approach to extract sections with multiple patterns
-        let currentSection: string | null = null;
+        let currentSection = "";
         
         for (let i = 0; i < lines.length; i++) {
           const line = lines[i].trim();
@@ -197,17 +197,18 @@ Additional details: ${details || "(none)"}
           const headerMatch = 
             line.match(/^(?:\d+[\.\)]\s*)?(?:(General Outlook|Potential Benefits and Risks|Steps to Adapt|Placard)\s*:)/i);
           
-          if (headerMatch) {
-            currentSection = headerMatch[1].replace(/\s+/g, ' ').trim();
+          if (headerMatch && headerMatch[1]) {
+            // Start a new section
+            currentSection = headerMatch[1].replace(/\s+/g, ' ').trim().toLowerCase();
             // Initialize or reset the section content
-            allSections[currentSection.toLowerCase()] = "";
+            allSections[currentSection] = "";
             continue; // Skip the header line
           }
           
           // If we're inside a section, append this line to its content
           if (currentSection) {
-            allSections[currentSection.toLowerCase()] = 
-              (allSections[currentSection.toLowerCase()] || "") + line + "\n";
+            allSections[currentSection] = 
+              (allSections[currentSection] || "") + line + "\n";
           }
         }
         
